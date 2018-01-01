@@ -1,5 +1,4 @@
-#include "DeckLinkAPI.h"
-#include "capture-delegate.h"
+#include "DeckLinkCaptureDelegate.h"
 
 DeckLinkCaptureDelegate::DeckLinkCaptureDelegate() : m_refCount(1)
 {

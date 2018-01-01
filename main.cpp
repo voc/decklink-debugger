@@ -4,31 +4,28 @@
 
 std::forward_list<IDeckLink*> collectDeckLinkDevices(void);
 std::map<IDeckLink*, DeckLinkCaptureDelegate*> createCaptureDelegates(std::forward_list<IDeckLink*> deckLinkDevices);
-void clear(void);
-void printStatusList(std::forward_list<IDeckLink*> deckLinkDevices, std::map<IDeckLink*, DeckLinkCaptureDelegate*> captureDelegates);
-void printIterationMeter(int iteration);
 
 int main (int argc, char** argv)
 {
-	// TODO crrate iterator here and free at end
 	std::forward_list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
-	DeckLinkCaptureDelegateList* captureDelegates = createCaptureDelegates(deckLinkIterator);
 
-	int iteration = 0;
-	while(true) {
-		IDeckLinkIterator* deckLinkIterator = createDeckLinkIterator();
+	for(IDeckLink* deckLink : deckLinkDevices)
+	{
+		char* deviceNameString = NULL;
 
-		clear();
-		printStatusList(deckLinkDevices, captureDelegates);
-		printIterationMeter(iteration++);
-		sleep(5);
+		result = deckLink->GetModelName((const char **) &deviceNameString);
+		if (result != S_OK)
+			fprintf(stderr, "Failed to get the Name for the DeckLink Device");
+			exit(1);
+		}
+
+		printf("%s", deviceNameString);
 	}
 
-	// TODO free map
+	//std::map<IDeckLink*, DeckLinkCaptureDelegate*> captureDelegates = createCaptureDelegates(deckLinkIterator);
 
 	exit(0);
 }
-
 
 std::forward_list<IDeckLink*> collectDeckLinkDevices(void)
 {
@@ -53,7 +50,7 @@ std::forward_list<IDeckLink*> collectDeckLinkDevices(void)
 	return deckLinkDevices;
 }
 
-
+/*
 void printStatusList(std::forward_list<IDeckLink*> deckLinkDevices, DeckLinkCaptureDelegateList* captureDelegates)
 {
 	int deviceIndex = 0;
@@ -99,3 +96,4 @@ std::map<IDeckLink*, DeckLinkCaptureDelegate*> createCaptureDelegates(std::forwa
 		deckLinkDelegatesMap[deckLink] = 
 	}
 }
+*/
