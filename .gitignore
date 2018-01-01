@@ -1,0 +1,4 @@
+/decklink-debugger
+*.o
+*.so
+
