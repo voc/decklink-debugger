@@ -1,14 +1,15 @@
-#ifndef __DeckLinkCaptureDelegate__
-#define __DeckLinkCaptureDelegate__
+#ifndef __CaptureDelegate__
+#define __CaptureDelegate__
 
 #include "DeckLinkAPI.h"
+#include "util.h"
 
-class DeckLinkCaptureDelegate : public IDeckLinkInputCallback
+class CaptureDelegate : public IDeckLinkInputCallback
 {
 public:
-	DeckLinkCaptureDelegate();
+	CaptureDelegate();
 
-	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, LPVOID *ppv) { return E_NOINTERFACE; }
+	virtual HRESULT STDMETHODCALLTYPE QueryInterface(UNUSED REFIID iid, UNUSED LPVOID *ppv) { return E_NOINTERFACE; }
 	virtual ULONG STDMETHODCALLTYPE AddRef(void);
 	virtual ULONG STDMETHODCALLTYPE  Release(void);
 	virtual HRESULT STDMETHODCALLTYPE VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags);

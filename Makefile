@@ -123,32 +123,59 @@ decklink-debugger/fast:
 	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/build
 .PHONY : decklink-debugger/fast
 
-DeckLinkCaptureDelegate.o: DeckLinkCaptureDelegate.cpp.o
+CaptureDelegate.o: CaptureDelegate.cpp.o
 
-.PHONY : DeckLinkCaptureDelegate.o
+.PHONY : CaptureDelegate.o
 
 # target to build an object file
-DeckLinkCaptureDelegate.cpp.o:
-	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/DeckLinkCaptureDelegate.cpp.o
-.PHONY : DeckLinkCaptureDelegate.cpp.o
+CaptureDelegate.cpp.o:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/CaptureDelegate.cpp.o
+.PHONY : CaptureDelegate.cpp.o
 
-DeckLinkCaptureDelegate.i: DeckLinkCaptureDelegate.cpp.i
+CaptureDelegate.i: CaptureDelegate.cpp.i
 
-.PHONY : DeckLinkCaptureDelegate.i
+.PHONY : CaptureDelegate.i
 
 # target to preprocess a source file
-DeckLinkCaptureDelegate.cpp.i:
-	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/DeckLinkCaptureDelegate.cpp.i
-.PHONY : DeckLinkCaptureDelegate.cpp.i
+CaptureDelegate.cpp.i:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/CaptureDelegate.cpp.i
+.PHONY : CaptureDelegate.cpp.i
 
-DeckLinkCaptureDelegate.s: DeckLinkCaptureDelegate.cpp.s
+CaptureDelegate.s: CaptureDelegate.cpp.s
 
-.PHONY : DeckLinkCaptureDelegate.s
+.PHONY : CaptureDelegate.s
 
 # target to generate assembly for a file
-DeckLinkCaptureDelegate.cpp.s:
-	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/DeckLinkCaptureDelegate.cpp.s
-.PHONY : DeckLinkCaptureDelegate.cpp.s
+CaptureDelegate.cpp.s:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/CaptureDelegate.cpp.s
+.PHONY : CaptureDelegate.cpp.s
+
+DeviceProber.o: DeviceProber.cpp.o
+
+.PHONY : DeviceProber.o
+
+# target to build an object file
+DeviceProber.cpp.o:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/DeviceProber.cpp.o
+.PHONY : DeviceProber.cpp.o
+
+DeviceProber.i: DeviceProber.cpp.i
+
+.PHONY : DeviceProber.i
+
+# target to preprocess a source file
+DeviceProber.cpp.i:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/DeviceProber.cpp.i
+.PHONY : DeviceProber.cpp.i
+
+DeviceProber.s: DeviceProber.cpp.s
+
+.PHONY : DeviceProber.s
+
+# target to generate assembly for a file
+DeviceProber.cpp.s:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/DeviceProber.cpp.s
+.PHONY : DeviceProber.cpp.s
 
 home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o: home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.cpp.o
 
@@ -213,9 +240,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... decklink-debugger"
-	@echo "... DeckLinkCaptureDelegate.o"
-	@echo "... DeckLinkCaptureDelegate.i"
-	@echo "... DeckLinkCaptureDelegate.s"
+	@echo "... CaptureDelegate.o"
+	@echo "... CaptureDelegate.i"
+	@echo "... CaptureDelegate.s"
+	@echo "... DeviceProber.o"
+	@echo "... DeviceProber.i"
+	@echo "... DeviceProber.s"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.i"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.s"
