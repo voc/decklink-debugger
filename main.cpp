@@ -1,6 +1,11 @@
 #include "DeckLinkAPI.h"
+#include "DeckLinkCaptureDelegate.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <forward_list>
+#include <map>
 
 std::forward_list<IDeckLink*> collectDeckLinkDevices(void);
 std::map<IDeckLink*, DeckLinkCaptureDelegate*> createCaptureDelegates(std::forward_list<IDeckLink*> deckLinkDevices);
@@ -9,12 +14,15 @@ int main (int argc, char** argv)
 {
 	std::forward_list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
 
+	HRESULT result;
+
 	for(IDeckLink* deckLink : deckLinkDevices)
 	{
 		char* deviceNameString = NULL;
 
 		result = deckLink->GetModelName((const char **) &deviceNameString);
 		if (result != S_OK)
+		{
 			fprintf(stderr, "Failed to get the Name for the DeckLink Device");
 			exit(1);
 		}
@@ -42,7 +50,7 @@ std::forward_list<IDeckLink*> collectDeckLinkDevices(void)
 	IDeckLink* deckLink = NULL;
 	while (deckLinkIterator->Next(&deckLink) == S_OK)
 	{
-		deckLinkDevices.push_back(deckLink);
+		deckLinkDevices.push_front(deckLink);
 	}
 
 	deckLinkIterator->Release(); // invalidates IDeckLink instances?
