@@ -4,6 +4,7 @@
 
 CaptureDelegate::CaptureDelegate() : m_refCount(1)
 {
+	printf("CaptureDelegate created\n");
 }
 
 ULONG CaptureDelegate::AddRef(void)

@@ -9,11 +9,11 @@ class CaptureDelegate : public IDeckLinkInputCallback
 public:
 	CaptureDelegate();
 
-	virtual HRESULT STDMETHODCALLTYPE QueryInterface(UNUSED REFIID iid, UNUSED LPVOID *ppv) { return E_NOINTERFACE; }
-	virtual ULONG STDMETHODCALLTYPE AddRef(void);
-	virtual ULONG STDMETHODCALLTYPE  Release(void);
-	virtual HRESULT STDMETHODCALLTYPE VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags);
-	virtual HRESULT STDMETHODCALLTYPE VideoInputFrameArrived(IDeckLinkVideoInputFrame*, IDeckLinkAudioInputPacket*);
+	virtual HRESULT QueryInterface(UNUSED REFIID iid, UNUSED LPVOID *ppv) { return E_NOINTERFACE; }
+	virtual ULONG AddRef(void);
+	virtual ULONG Release(void);
+	virtual HRESULT VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags);
+	virtual HRESULT VideoInputFrameArrived(IDeckLinkVideoInputFrame*, IDeckLinkAudioInputPacket*);
 
 private:
 	int32_t				m_refCount;

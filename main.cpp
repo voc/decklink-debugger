@@ -4,11 +4,14 @@
 #include <map>
 
 #include "util.h"
+#include "assert.h"
 #include "DeckLinkAPI.h"
 #include "DeviceProber.h"
 
 std::forward_list<IDeckLink*> collectDeckLinkDevices(void);
+void freeDeckLinkDevices(std::forward_list<IDeckLink*> deckLinkDevices);
 std::map<IDeckLink*, DeviceProber*> createDeviceProbers(std::forward_list<IDeckLink*> deckLinkDevices);
+void freeDeviceProbers(std::map<IDeckLink*, DeviceProber*> deviceProbers);
 void printStatusList(std::map<IDeckLink*, DeviceProber*> deviceProbers);
 char* getDeviceName(IDeckLink* deckLink);
 
@@ -18,6 +21,9 @@ int main (UNUSED int argc, UNUSED char** argv)
 	std::map<IDeckLink*, DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
 
 	printStatusList(deviceProbers);
+
+	freeDeviceProbers(deviceProbers);
+	freeDeckLinkDevices(deckLinkDevices);
 
 	return 0;
 }
@@ -40,9 +46,17 @@ std::forward_list<IDeckLink*> collectDeckLinkDevices(void)
 		deckLinkDevices.push_front(deckLink);
 	}
 
-	deckLinkIterator->Release();
+	assert(deckLinkIterator->Release() == 0);
 
 	return deckLinkDevices;
+}
+
+void freeDeckLinkDevices(std::forward_list<IDeckLink*> deckLinkDevices)
+{
+	for(IDeckLink* deckLink: deckLinkDevices)
+	{
+		assert(deckLink->Release() == 0);
+	}
 }
 
 std::map<IDeckLink*, DeviceProber*> createDeviceProbers(std::forward_list<IDeckLink*> deckLinkDevices)
@@ -56,6 +70,14 @@ std::map<IDeckLink*, DeviceProber*> createDeviceProbers(std::forward_list<IDeckL
 	}
 
 	return deckLinkDelegatesMap;
+}
+
+void freeDeviceProbers(std::map<IDeckLink*, DeviceProber*> deviceProbers)
+{
+	for(auto const &entry : deviceProbers)
+	{
+		assert(entry.second->Release() == 0);
+	}
 }
 
 void printStatusList(std::map<IDeckLink*, DeviceProber*> deviceProbers)

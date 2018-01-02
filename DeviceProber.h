@@ -3,14 +3,20 @@
 
 #include "DeckLinkAPI.h"
 #include "util.h"
+#include "assert.h"
 
 class DeviceProber
 {
 public:
 	DeviceProber(IDeckLink* deckLink);
-	~DeviceProber();
+	virtual ~DeviceProber() {}
+
+	virtual ULONG AddRef(void);
+	virtual ULONG Release(void);
+
 private:
-	IDeckLink* m_deckLink;
+	int32_t				m_refCount;
+	IDeckLink*			m_deckLink;
 };
 
 #endif
