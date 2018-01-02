@@ -12,38 +12,86 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deck
 
 	if (m_canAutodetect)
 	{
-		m_captureDelegate = setupCaptureDelegate(m_deckLink);
+		m_deckLinkInput = queryInputInterface(m_deckLink);
+		m_captureDelegate = setupCaptureDelegate(m_deckLinkInput);
 	}
 
 	// check if autodetect is supported, set m_canAutoDetect
 	// if yes, start CaptureDelegate
 
 }
-
-CaptureDelegate* DeviceProber::setupCaptureDelegate(IDeckLink* deckLink)
+#
+IDeckLinkInput* DeviceProber::queryInputInterface(IDeckLink* deckLink)
 {
 	HRESULT result;
-	bool formatDetectionSupported;
+	IDeckLinkInput* deckLinkInput = NULL;
+
+	result = deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
+	if (result != S_OK)
+	{
+		std::cerr << "Failed to get Input Interface" << std::endl;
+		exit(1);
+	}
+
+	return deckLinkInput;
+}
+
+CaptureDelegate* DeviceProber::setupCaptureDelegate(IDeckLinkInput* deckLinkInput)
+{
+	HRESULT result;
+
+	IDeckLinkDisplayModeIterator*	displayModeIterator = NULL;
+	IDeckLinkDisplayMode*			displayMode = NULL;
+
+
+	result = deckLinkInput->GetDisplayModeIterator(&displayModeIterator);
+	if (result != S_OK)
+	{
+		std::cerr << "Failed to get Display-Mode Iterator" << std::endl;
+		exit(1);
+	}
+
+	// just select first display-mode to start auto-detection from
+	result = displayModeIterator->Next(&displayMode);
+	if (result != S_OK)
+	{
+		std::cerr << "Failed to get Display-Mode from Iterator" << std::endl;
+		exit(1);
+	}
+
+	assert(displayModeIterator->Release() == 0);
 
 	CaptureDelegate* captureDelegate = new CaptureDelegate();
-	IDeckLinkAttributes* deckLinkAttributes = NULL;
+	deckLinkInput->SetCallback(captureDelegate);
 
-	// Check the card supports format detection
-	result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void**)&deckLinkAttributes);
+	BMDVideoInputFlags videoInputFlags = bmdVideoInputEnableFormatDetection;
+	BMDPixelFormat pixelFormat = bmdFormat8BitYUV;
+
+	result = deckLinkInput->EnableVideoInput(displayMode->GetDisplayMode(), pixelFormat, videoInputFlags);
 	if (result != S_OK)
 	{
-		std::cerr << "Failed to Query Attributes-Interface" << std::endl;
+		std::cerr << "Failed to enable video input. Is another application using the card?" << std::endl;
 		exit(1);
 	}
 
-	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
+	int audioSampleDepth = 16;
+	int audioChannels = 16;
+
+	result = deckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, audioSampleDepth, audioChannels);
 	if (result != S_OK)
 	{
-		std::cerr << "Failed to Query Audio-Detection-Flag" << std::endl;
+		std::cerr << "Failed to enable audio-input" << std::endl;
 		exit(1);
 	}
 
-	deckLinkAttributes->Release();
+	assert(displayMode->Release() == 0);
+
+	result = deckLinkInput->StartStreams();
+	if (result != S_OK)
+	{
+		std::cerr << "Failed to enable video input. Is another application using the card?" << std::endl;
+		exit(1);
+	}
 
 	return captureDelegate;
 }
@@ -66,7 +114,7 @@ bool DeviceProber::queryCanAutodetect(IDeckLink* deckLink)
 	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
 	if (result != S_OK)
 	{
-		std::cerr << "Failed to Query Audio-Detection-Flag" << std::endl;
+		std::cerr << "Failed to Query Auto-Detection-Flag" << std::endl;
 		exit(1);
 	}
 
@@ -86,6 +134,13 @@ ULONG DeviceProber::Release(void)
 	if (newRefValue == 0)
 	{
 		m_deckLink->Release();
+
+		if(m_deckLinkInput != NULL) {
+			m_deckLinkInput->StopStreams();
+			m_deckLinkInput->DisableAudioInput();
+			m_deckLinkInput->DisableVideoInput();
+			assert(m_deckLinkInput->Release() == 0);
+		}
 
 		if(m_captureDelegate != NULL) {
 			assert(m_captureDelegate->Release() == 0);

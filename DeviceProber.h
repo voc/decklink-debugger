@@ -22,12 +22,13 @@ public:
 private:
 	IDeckLinkInput* queryInputInterface(IDeckLink* deckLink);
 	bool queryCanAutodetect(IDeckLink* deckLink);
-	CaptureDelegate* setupCaptureDelegate(IDeckLink* deckLink);
+	CaptureDelegate* setupCaptureDelegate(IDeckLinkInput* deckLinkInput);
 
 private:
 	int32_t				m_refCount;
 	IDeckLink*			m_deckLink;
 	CaptureDelegate*	m_captureDelegate;
+	IDeckLinkInput*		m_deckLinkInput;
 
 	bool				m_canAutodetect;
 };

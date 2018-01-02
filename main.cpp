@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
 
 #include <list>
 #include <string>
@@ -9,6 +11,8 @@
 #include "DeckLinkAPI.h"
 #include "DeviceProber.h"
 
+static bool g_do_exit = false;
+
 std::list<IDeckLink*> collectDeckLinkDevices(void);
 void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices);
 
@@ -18,17 +22,35 @@ void freeDeviceProbers(std::list<DeviceProber*> deviceProbers);
 void printStatusList(std::list<DeviceProber*> deviceProbers);
 char* getDeviceName(IDeckLink* deckLink);
 
+static void sigfunc(int signum);
+
 int main (UNUSED int argc, UNUSED char** argv)
 {
 	std::list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
 	std::list<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
 
-	printStatusList(deviceProbers);
+	signal(SIGINT, sigfunc);
+	signal(SIGTERM, sigfunc);
+	signal(SIGHUP, sigfunc);
 
+	while(!g_do_exit) {
+		printStatusList(deviceProbers);
+		sleep(1);
+	}
+
+	std::cout << "Shutting down" << std::endl;
 	freeDeviceProbers(deviceProbers);
 	freeDeckLinkDevices(deckLinkDevices);
 
 	return 0;
+}
+
+static void sigfunc(int signum)
+{
+	if (signum == SIGINT || signum == SIGTERM)
+	{
+		g_do_exit = true;
+	}
 }
 
 std::list<IDeckLink*> collectDeckLinkDevices(void)

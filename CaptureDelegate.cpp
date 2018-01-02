@@ -24,12 +24,12 @@ ULONG CaptureDelegate::Release(void)
 
 HRESULT CaptureDelegate::VideoInputFrameArrived(UNUSED IDeckLinkVideoInputFrame* videoFrame, UNUSED IDeckLinkAudioInputPacket* audioFrame)
 {
-	printf("CaptureDelegate::VideoInputFrameArrived");
+	printf("CaptureDelegate::VideoInputFrameArrived\n");
 	return S_OK;
 }
 
 HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChangedEvents events, UNUSED IDeckLinkDisplayMode *mode, UNUSED BMDDetectedVideoInputFormatFlags formatFlags)
 {
-	printf("CaptureDelegate::VideoInputFormatChanged");
+	printf("CaptureDelegate::VideoInputFormatChanged\n");
 	return S_OK;
 }
