@@ -1,24 +1,27 @@
 #include <stdio.h>
 
-#include <forward_list>
-#include <map>
+#include <list>
+#include <string>
+#include <iostream>
 
 #include "util.h"
 #include "assert.h"
 #include "DeckLinkAPI.h"
 #include "DeviceProber.h"
 
-std::forward_list<IDeckLink*> collectDeckLinkDevices(void);
-void freeDeckLinkDevices(std::forward_list<IDeckLink*> deckLinkDevices);
-std::map<IDeckLink*, DeviceProber*> createDeviceProbers(std::forward_list<IDeckLink*> deckLinkDevices);
-void freeDeviceProbers(std::map<IDeckLink*, DeviceProber*> deviceProbers);
-void printStatusList(std::map<IDeckLink*, DeviceProber*> deviceProbers);
+std::list<IDeckLink*> collectDeckLinkDevices(void);
+void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices);
+
+std::list<DeviceProber*> createDeviceProbers(std::list<IDeckLink*> deckLinkDevices);
+void freeDeviceProbers(std::list<DeviceProber*> deviceProbers);
+
+void printStatusList(std::list<DeviceProber*> deviceProbers);
 char* getDeviceName(IDeckLink* deckLink);
 
 int main (UNUSED int argc, UNUSED char** argv)
 {
-	std::forward_list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
-	std::map<IDeckLink*, DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
+	std::list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
+	std::list<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
 
 	printStatusList(deviceProbers);
 
@@ -28,15 +31,19 @@ int main (UNUSED int argc, UNUSED char** argv)
 	return 0;
 }
 
-std::forward_list<IDeckLink*> collectDeckLinkDevices(void)
+std::list<IDeckLink*> collectDeckLinkDevices(void)
 {
-	std::forward_list<IDeckLink*>	deckLinkDevices;
+	std::list<IDeckLink*>	deckLinkDevices;
 	IDeckLinkIterator*				deckLinkIterator;
 
 	deckLinkIterator = CreateDeckLinkIteratorInstance();
 	if (deckLinkIterator == NULL)
 	{
-		fprintf(stderr, "A DeckLink iterator could not be created. The DeckLink drivers may not be installed.\n");
+		std::cerr
+			<< "A DeckLink iterator could not be created."
+			<< "The DeckLink drivers may not be installed."
+			<< std::endl;
+
 		exit(1);
 	}
 
@@ -51,7 +58,7 @@ std::forward_list<IDeckLink*> collectDeckLinkDevices(void)
 	return deckLinkDevices;
 }
 
-void freeDeckLinkDevices(std::forward_list<IDeckLink*> deckLinkDevices)
+void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices)
 {
 	for(IDeckLink* deckLink: deckLinkDevices)
 	{
@@ -59,57 +66,41 @@ void freeDeckLinkDevices(std::forward_list<IDeckLink*> deckLinkDevices)
 	}
 }
 
-std::map<IDeckLink*, DeviceProber*> createDeviceProbers(std::forward_list<IDeckLink*> deckLinkDevices)
+std::list<DeviceProber*> createDeviceProbers(std::list<IDeckLink*> deckLinkDevices)
 {
-	std::map<IDeckLink*, DeviceProber*> deckLinkDelegatesMap;
+	std::list<DeviceProber*> deviceProbersList;
 
 	for(IDeckLink* deckLink: deckLinkDevices)
 	{
-		DeviceProber* delegate = new DeviceProber(deckLink);
-		deckLinkDelegatesMap[deckLink] = delegate;
+		deviceProbersList.push_front(new DeviceProber(deckLink));
 	}
 
-	return deckLinkDelegatesMap;
+	return deviceProbersList;
 }
 
-void freeDeviceProbers(std::map<IDeckLink*, DeviceProber*> deviceProbers)
+void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
 {
-	for(auto const &entry : deviceProbers)
+	for(DeviceProber* deviceProber : deviceProbers)
 	{
-		assert(entry.second->Release() == 0);
+		assert(deviceProber->Release() == 0);
 	}
 }
 
-void printStatusList(std::map<IDeckLink*, DeviceProber*> deviceProbers)
+void printStatusList(std::list<DeviceProber*> deviceProbers)
 {
 	int deviceIndex = 0;
 
-	for(auto const &entry : deviceProbers)
+	for(DeviceProber* deviceProber : deviceProbers)
 	{
-		IDeckLink* deckLink = entry.first;
-
-		char* devideName = getDeviceName(deckLink);
-		printf("%2u: %s\n", deviceIndex, devideName);
+		std::cout
+			<< deviceIndex << ", " << deviceProber->GetDeviceName()
+			<< ", CanAutodetect: " << deviceProber->CanAutodetect()
+			<< std::endl;
 
 		deviceIndex++;
 	}
 
 	if (deviceIndex == 0) {
-		fprintf(stderr, "No DeckLink devices found\n");
+				std::cerr << "No DeckLink devices found" << std::endl;
 	}
-}
-
-char* getDeviceName(IDeckLink* deckLink) {
-	HRESULT result;
-
-	char* deviceNameString = NULL;
-
-	result = deckLink->GetModelName((const char **) &deviceNameString);
-	if (result != S_OK)
-	{
-		fprintf(stderr, "Failed to get the Name for the DeckLink Device");
-		exit(1);
-	}
-
-	return deviceNameString;
 }

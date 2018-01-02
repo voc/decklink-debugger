@@ -16,7 +16,7 @@ public:
 	virtual HRESULT VideoInputFrameArrived(IDeckLinkVideoInputFrame*, IDeckLinkAudioInputPacket*);
 
 private:
-	int32_t				m_refCount;
+	int32_t m_refCount;
 };
 
 #endif
