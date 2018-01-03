@@ -5,6 +5,7 @@
 
 #include "DeckLinkAPI.h"
 #include "CaptureDelegate.h"
+#include "ProberState.h"
 #include "util.h"
 
 class DeviceProber
@@ -19,18 +20,19 @@ public:
 	virtual std::string GetDeviceName();
 	virtual bool CanAutodetect() { return m_canAutodetect; }
 
-private:
-	IDeckLinkInput* queryInputInterface(IDeckLink* deckLink);
-	bool queryCanAutodetect(IDeckLink* deckLink);
-	CaptureDelegate* setupCaptureDelegate(IDeckLinkInput* deckLinkInput);
+	virtual ProberState GetState();
+	virtual std::string GetDetectedMode();
+	virtual std::string GetActivePort();
 
 private:
-	int32_t				m_refCount;
-	IDeckLink*			m_deckLink;
-	CaptureDelegate*	m_captureDelegate;
-	IDeckLinkInput*		m_deckLinkInput;
+	bool queryCanAutodetect(void);
 
-	bool				m_canAutodetect;
+private:
+	int32_t             m_refCount;
+	IDeckLink*          m_deckLink;
+	CaptureDelegate*    m_captureDelegate;
+
+	bool                m_canAutodetect;
 };
 
 #endif

@@ -42,6 +42,7 @@ int main (UNUSED int argc, UNUSED char** argv)
 	freeDeviceProbers(deviceProbers);
 	freeDeckLinkDevices(deckLinkDevices);
 
+	std::cout << "Bye." << std::endl;
 	return 0;
 }
 
@@ -117,6 +118,9 @@ void printStatusList(std::list<DeviceProber*> deviceProbers)
 		std::cout
 			<< deviceIndex << ", " << deviceProber->GetDeviceName()
 			<< ", CanAutodetect: " << deviceProber->CanAutodetect()
+			<< ", State: "         << ProberStateNames[deviceProber->GetState()]
+			<< ", ActivePort: "    << deviceProber->GetActivePort()
+			<< ", DetectedMode: "  << deviceProber->GetDetectedMode()
 			<< std::endl;
 
 		deviceIndex++;
