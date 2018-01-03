@@ -36,6 +36,12 @@ int main (UNUSED int argc, UNUSED char** argv)
 
 	while(!g_do_exit) {
 		printStatusList(deviceProbers);
+
+		for(auto deviceProber: deviceProbers) {
+			if(deviceProber->GetState() != SIGNAL_DETECTED) {
+				deviceProber->SelectNextConnection();
+			}
+		}
 		sleep(1);
 	}
 

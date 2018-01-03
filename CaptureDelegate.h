@@ -22,15 +22,17 @@ public:
 	virtual ProberState        GetState(void);
 	virtual std::string        GetDetectedMode(void);
 	virtual BMDVideoConnection GetActiveConnection(void);
+	virtual void               SelectNextConnection(void);
 
 private:
 	IDeckLinkDisplayMode* queryFirstDisplayMode(void);
 	IDeckLinkInput*       queryInputInterface(void);
 	int64_t               queryInputConnections(void);
-	void                  selectNextConnection(void);
+	BMDVideoConnection    querySelectedConnection(void);
 
 private:
-	static const BMDPixelFormat     PIXEL_FORMAT = bmdFormat8BitYUV;
+	static const BMDPixelFormat     PIXEL_FORMAT = bmdFormat10BitYUV;
+	static const BMDVideoInputFlags VIDEO_INPUT_FLAGS = bmdVideoInputEnableFormatDetection;
 
 	static const BMDAudioSampleRate AUDIO_SAMPLE_RATE = bmdAudioSampleRate48kHz;
 	static const int                AUDIO_SAMPLE_DEPTH = 16;

@@ -20,9 +20,11 @@ public:
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect() { return m_canAutodetect; }
 
-	virtual ProberState        GetState();
-	virtual std::string        GetDetectedMode();
-	virtual BMDVideoConnection GetActiveConnection();
+	virtual ProberState        GetState(void);
+	virtual std::string        GetDetectedMode(void);
+	virtual BMDVideoConnection GetActiveConnection(void);
+
+	virtual void               SelectNextConnection(void);
 
 private:
 	bool queryCanAutodetect(void);

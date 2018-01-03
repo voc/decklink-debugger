@@ -44,7 +44,7 @@ bool DeviceProber::queryCanAutodetect(void)
 	return formatDetectionSupported;
 }
 
-ProberState DeviceProber::GetState() {
+ProberState DeviceProber::GetState(void) {
 	if (m_captureDelegate)
 	{
 		return m_captureDelegate->GetState();
@@ -53,7 +53,7 @@ ProberState DeviceProber::GetState() {
 	return UNDEFINED;
 }
 
-std::string DeviceProber::GetDetectedMode()
+std::string DeviceProber::GetDetectedMode(void)
 {
 	if (m_captureDelegate)
 	{
@@ -63,7 +63,7 @@ std::string DeviceProber::GetDetectedMode()
 	return NULL;
 }
 
-BMDVideoConnection DeviceProber::GetActiveConnection()
+BMDVideoConnection DeviceProber::GetActiveConnection(void)
 {
 	if (m_captureDelegate)
 	{
@@ -71,6 +71,13 @@ BMDVideoConnection DeviceProber::GetActiveConnection()
 	}
 
 	return 0;
+}
+
+void DeviceProber::SelectNextConnection(void) {
+	if (m_captureDelegate)
+	{
+		return m_captureDelegate->SelectNextConnection();
+	}
 }
 
 ULONG DeviceProber::AddRef(void)

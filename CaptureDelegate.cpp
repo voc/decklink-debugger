@@ -17,7 +17,6 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 
 	m_deckLinkInput = queryInputInterface();
 	m_decklinkConnections = queryInputConnections();
-	std::cout << "m_decklinkConnections" << m_decklinkConnections << std::endl;
 }
 
 IDeckLinkInput* CaptureDelegate::queryInputInterface(void)
@@ -66,11 +65,10 @@ void CaptureDelegate::Start(void)
 	HRESULT result;
 
 	IDeckLinkDisplayMode* displayMode = queryFirstDisplayMode();
-	BMDVideoInputFlags videoInputFlags = bmdVideoInputEnableFormatDetection;
 
 	m_deckLinkInput->SetCallback(this);
 
-	result = m_deckLinkInput->EnableVideoInput(displayMode->GetDisplayMode(), PIXEL_FORMAT, videoInputFlags);
+	result = m_deckLinkInput->EnableVideoInput(displayMode->GetDisplayMode(), PIXEL_FORMAT, VIDEO_INPUT_FLAGS);
 	if (result != S_OK)
 	{
 		std::cerr << "Failed to enable video input. Is another application using the card?" << std::endl;
@@ -86,7 +84,7 @@ void CaptureDelegate::Start(void)
 
 	assert(displayMode->Release() == 0);
 
-	selectNextConnection();
+	SelectNextConnection();
 
 	result = m_deckLinkInput->StartStreams();
 	if (result != S_OK)
@@ -133,7 +131,7 @@ IDeckLinkDisplayMode* CaptureDelegate::queryFirstDisplayMode(void)
 	return displayMode;
 }
 
-void CaptureDelegate::selectNextConnection(void)
+void CaptureDelegate::SelectNextConnection(void)
 {
 	std::array<BMDVideoConnection, 3> relevantConnections = {
 		bmdVideoConnectionSDI,
@@ -151,6 +149,11 @@ void CaptureDelegate::selectNextConnection(void)
 		}
 		else {
 			currentConnectionIt++;
+
+			if(currentConnectionIt == relevantConnections.end())
+			{
+				currentConnectionIt =relevantConnections.begin();
+			}
 		}
 
 		BMDVideoConnection nextConnection = *currentConnectionIt;
@@ -160,7 +163,41 @@ void CaptureDelegate::selectNextConnection(void)
 			break;
 		}
 	}
+
+	HRESULT result;
+	IDeckLinkConfiguration* deckLinkConfiguration = NULL;
+
+	result = m_deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void**)&deckLinkConfiguration);
+	if (result != S_OK)
+	{
+		std::cerr << "Failed to Query Attributes-Interface" << std::endl;
+		exit(1);
+	}
+
+	deckLinkConfiguration->SetInt(bmdDeckLinkConfigVideoInputConnection, m_activeConnection);
+	assert(deckLinkConfiguration->Release() == 0);
 }
+
+BMDVideoConnection CaptureDelegate::querySelectedConnection(void)
+{
+	HRESULT result;
+	IDeckLinkConfiguration* deckLinkConfiguration = NULL;
+	int64_t activeConnection;
+
+	result = m_deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void**)&deckLinkConfiguration);
+	if (result != S_OK)
+	{
+		std::cerr << "Failed to Query Attributes-Interface" << std::endl;
+		exit(1);
+	}
+
+	deckLinkConfiguration->GetInt(bmdDeckLinkConfigVideoInputConnection, &activeConnection);
+	assert(deckLinkConfiguration->Release() == 0);
+
+	return activeConnection;
+}
+
+
 
 ProberState CaptureDelegate::GetState(void)
 {
@@ -187,22 +224,42 @@ HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoF
 	{
 		m_state = SIGNAL_DETECTED;
 
-		std::cout << ", Size: " << videoFrame->GetWidth() << "x" << videoFrame->GetHeight();
-		std::cout << ", PixelFormat: " << videoFrame->GetPixelFormat();
+
+		// it sometimes happens, that the switch to another connection is ignored when, just at this time,
+		// a signal arrives. Make sure to always report the correct selected interface.
+		m_activeConnection = querySelectedConnection();
 	}
 
 	return S_OK;
 }
 
-HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChangedEvents events, UNUSED IDeckLinkDisplayMode *mode, BMDDetectedVideoInputFormatFlags formatFlags)
+HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChangedEvents events, IDeckLinkDisplayMode *mode, BMDDetectedVideoInputFormatFlags formatFlags)
 {
+	HRESULT result;
 	char*	displayModeName = NULL;
 
 	mode->GetName((const char**)&displayModeName);
-	printf("Video format changed to %s %s\n", displayModeName, formatFlags & bmdDetectedVideoInputRGB444 ? "RGB" : "YUV");
+	m_detectedMode = displayModeName;
+	m_detectedMode += " ";
+	m_detectedMode += (formatFlags & bmdDetectedVideoInputRGB444 ? "RGB" : "YUV");
 
 	if (displayModeName)
 		free(displayModeName);
+
+	BMDPixelFormat pixelFormat = bmdFormat10BitYUV;
+
+	if (formatFlags & bmdDetectedVideoInputRGB444)
+		pixelFormat = bmdFormat10BitRGB;
+
+	m_deckLinkInput->StopStreams();
+	result = m_deckLinkInput->EnableVideoInput(mode->GetDisplayMode(), pixelFormat, VIDEO_INPUT_FLAGS);
+	if (result != S_OK)
+	{
+		std::cerr << "Unable to Switch to new Video-Format" << std::endl;
+		exit(1);
+	}
+
+	m_deckLinkInput->StartStreams();
 
 	return S_OK;
 }
