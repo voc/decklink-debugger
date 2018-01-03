@@ -9,6 +9,7 @@
 #include "util.h"
 #include "assert.h"
 #include "DeckLinkAPI.h"
+#include "ProberState.h"
 #include "DeviceProber.h"
 
 static bool g_do_exit = false;
@@ -109,6 +110,39 @@ void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
 	}
 }
 
+std::string proberStateToString(ProberState proberState)
+{
+	switch(proberState)
+	{
+		case SEARCHING_FOR_SIGNAL:
+			return "SEARCHING_FOR_SIGNAL";
+
+		case SIGNAL_DETECTED:
+			return "SIGNAL_DETECTED";
+
+		default:
+			return "UNDEFINED";
+	}
+}
+
+std::string videoConnectionToString(BMDVideoConnection videoConnection)
+{
+	switch(videoConnection)
+	{
+		case bmdVideoConnectionSDI:
+			return "SDI";
+
+		case bmdVideoConnectionHDMI:
+			return "HDMI";
+
+		case bmdVideoConnectionOpticalSDI:
+			return "OpticalSDI";
+
+		default:
+			return "UNDEFINED";
+	}
+}
+
 void printStatusList(std::list<DeviceProber*> deviceProbers)
 {
 	int deviceIndex = 0;
@@ -116,11 +150,11 @@ void printStatusList(std::list<DeviceProber*> deviceProbers)
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
 		std::cout
-			<< deviceIndex << ", " << deviceProber->GetDeviceName()
-			<< ", CanAutodetect: " << deviceProber->CanAutodetect()
-			<< ", State: "         << ProberStateNames[deviceProber->GetState()]
-			<< ", ActivePort: "    << deviceProber->GetActivePort()
-			<< ", DetectedMode: "  << deviceProber->GetDetectedMode()
+			<< "#" << deviceIndex << ", " << deviceProber->GetDeviceName()
+			<< ", CanAutodetect: "        << deviceProber->CanAutodetect()
+			<< ", State: "                << proberStateToString(deviceProber->GetState())
+			<< ", ActiveConnection: "     << videoConnectionToString(deviceProber->GetActiveConnection())
+			<< ", DetectedMode: "         << deviceProber->GetDetectedMode()
 			<< std::endl;
 
 		deviceIndex++;

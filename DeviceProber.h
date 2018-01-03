@@ -18,11 +18,11 @@ public:
 	virtual ULONG Release(void);
 
 	virtual std::string GetDeviceName();
-	virtual bool CanAutodetect() { return m_canAutodetect; }
+	virtual bool        CanAutodetect() { return m_canAutodetect; }
 
-	virtual ProberState GetState();
-	virtual std::string GetDetectedMode();
-	virtual std::string GetActivePort();
+	virtual ProberState        GetState();
+	virtual std::string        GetDetectedMode();
+	virtual BMDVideoConnection GetActiveConnection();
 
 private:
 	bool queryCanAutodetect(void);

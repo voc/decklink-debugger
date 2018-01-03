@@ -1,16 +1,26 @@
+#include "assert.h"
+
+#include <array>
 #include <stdio.h>
 #include <iostream>
+#include <algorithm>
 
 #include "CaptureDelegate.h"
 
-CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deckLink)
+CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
+	m_refCount(1),
+	m_deckLink(deckLink),
+	m_state(SEARCHING_FOR_SIGNAL),
+	m_activeConnection(0)
 {
 	m_deckLink->AddRef();
 
 	m_deckLinkInput = queryInputInterface();
+	m_decklinkConnections = queryInputConnections();
+	std::cout << "m_decklinkConnections" << m_decklinkConnections << std::endl;
 }
 
-IDeckLinkInput* CaptureDelegate::queryInputInterface()
+IDeckLinkInput* CaptureDelegate::queryInputInterface(void)
 {
 	HRESULT result;
 	IDeckLinkInput* deckLinkInput = NULL;
@@ -25,11 +35,37 @@ IDeckLinkInput* CaptureDelegate::queryInputInterface()
 	return deckLinkInput;
 }
 
+int64_t CaptureDelegate::queryInputConnections(void)
+{
+	HRESULT result;
+	IDeckLinkAttributes* deckLinkAttributes = NULL;
+
+	int64_t connections;
+
+	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void**)&deckLinkAttributes);
+	if (result != S_OK)
+	{
+		std::cerr << "Could not obtain the IDeckLinkAttributes interface" << std::endl;
+		exit(1);
+	}
+
+	result = deckLinkAttributes->GetInt(BMDDeckLinkVideoInputConnections, &connections);
+	if (result != S_OK)
+	{
+		std::cerr << "Could not obtain the list of input connections" << std::endl;
+		exit(1);
+	}
+
+	assert(deckLinkAttributes->Release() == 0);
+
+	return connections;
+}
+
 void CaptureDelegate::Start(void)
 {
 	HRESULT result;
 
-	IDeckLinkDisplayMode* displayMode = selectFirstDisplayMode();
+	IDeckLinkDisplayMode* displayMode = queryFirstDisplayMode();
 	BMDVideoInputFlags videoInputFlags = bmdVideoInputEnableFormatDetection;
 
 	m_deckLinkInput->SetCallback(this);
@@ -50,6 +86,7 @@ void CaptureDelegate::Start(void)
 
 	assert(displayMode->Release() == 0);
 
+	selectNextConnection();
 
 	result = m_deckLinkInput->StartStreams();
 	if (result != S_OK)
@@ -68,7 +105,7 @@ void CaptureDelegate::Stop(void)
 	m_deckLinkInput->SetCallback(NULL);
 }
 
-IDeckLinkDisplayMode* CaptureDelegate::selectFirstDisplayMode()
+IDeckLinkDisplayMode* CaptureDelegate::queryFirstDisplayMode(void)
 {
 	HRESULT result;
 
@@ -96,73 +133,65 @@ IDeckLinkDisplayMode* CaptureDelegate::selectFirstDisplayMode()
 	return displayMode;
 }
 
-ProberState CaptureDelegate::GetState()
+void CaptureDelegate::selectNextConnection(void)
 {
-	return SEARCHING_FOR_SIGNAL;
+	std::array<BMDVideoConnection, 3> relevantConnections = {
+		bmdVideoConnectionSDI,
+		bmdVideoConnectionHDMI,
+		bmdVideoConnectionOpticalSDI,
+	};
+
+	auto currentConnectionIt = std::find(relevantConnections.begin(), relevantConnections.end(), m_activeConnection);
+
+	while(true)
+	{
+		if(currentConnectionIt == relevantConnections.end())
+		{
+			currentConnectionIt =relevantConnections.begin();
+		}
+		else {
+			currentConnectionIt++;
+		}
+
+		BMDVideoConnection nextConnection = *currentConnectionIt;
+		if(m_decklinkConnections & nextConnection)
+		{
+			m_activeConnection = nextConnection;
+			break;
+		}
+	}
 }
 
-std::string CaptureDelegate::GetDetectedMode()
+ProberState CaptureDelegate::GetState(void)
 {
-	return "";
+	return m_state;
 }
 
-std::string CaptureDelegate::GetActivePort()
+std::string CaptureDelegate::GetDetectedMode(void)
 {
-	return "";
+	return m_detectedMode;
+}
+
+BMDVideoConnection CaptureDelegate::GetActiveConnection(void)
+{
+	return m_activeConnection;
 }
 
 HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, UNUSED IDeckLinkAudioInputPacket* audioFrame)
 {
-	return S_OK;
-
 	if (videoFrame->GetFlags() & bmdFrameHasNoInputSource)
 	{
-		std::cout << ", No input signal detected";
+		m_state = SEARCHING_FOR_SIGNAL;
 	}
 	else
 	{
-		if(hasRightEyeFrame(videoFrame))
-		{
-			std::cout << ", 3D Extension: Right-Eye-Frame present";
-		}
+		m_state = SIGNAL_DETECTED;
 
 		std::cout << ", Size: " << videoFrame->GetWidth() << "x" << videoFrame->GetHeight();
 		std::cout << ", PixelFormat: " << videoFrame->GetPixelFormat();
 	}
 
-	std::cout << std::endl;
 	return S_OK;
-}
-
-bool CaptureDelegate::hasRightEyeFrame(IDeckLinkVideoInputFrame* videoFrame)
-{
-	HRESULT result;
-
-	bool rightEyeFramePresent = false;
-
-	IDeckLinkVideoFrame*				rightEyeFrame = NULL;
-	IDeckLinkVideoFrame3DExtensions*	threeDExtensions = NULL;
-
-	result = videoFrame->QueryInterface(IID_IDeckLinkVideoFrame3DExtensions, (void **) &threeDExtensions);
-
-	if ((result == S_OK) && (threeDExtensions->GetFrameForRightEye(&rightEyeFrame) == S_OK))
-	{
-		rightEyeFramePresent = true;
-	}
-
-	if (rightEyeFrame)
-	{
-		rightEyeFrame->Release();
-		rightEyeFrame = NULL;
-	}
-
-	if (threeDExtensions)
-	{
-		threeDExtensions->Release();
-		threeDExtensions = NULL;
-	}
-
-	return rightEyeFramePresent;
 }
 
 HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChangedEvents events, UNUSED IDeckLinkDisplayMode *mode, BMDDetectedVideoInputFormatFlags formatFlags)

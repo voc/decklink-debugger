@@ -4,7 +4,6 @@
 #include "DeckLinkAPI.h"
 #include "ProberState.h"
 #include "util.h"
-#include "assert.h"
 
 class CaptureDelegate : public IDeckLinkInputCallback
 {
@@ -20,15 +19,17 @@ public:
 	virtual void Start(void);
 	virtual void Stop(void);
 
-	virtual ProberState GetState(void);
-	virtual std::string GetDetectedMode(void);
-	virtual std::string GetActivePort(void);
+	virtual ProberState        GetState(void);
+	virtual std::string        GetDetectedMode(void);
+	virtual BMDVideoConnection GetActiveConnection(void);
 
 private:
-	IDeckLinkDisplayMode* selectFirstDisplayMode(void);
-	IDeckLinkInput* queryInputInterface(void);
-	bool hasRightEyeFrame(IDeckLinkVideoInputFrame* videoFrame);
+	IDeckLinkDisplayMode* queryFirstDisplayMode(void);
+	IDeckLinkInput*       queryInputInterface(void);
+	int64_t               queryInputConnections(void);
+	void                  selectNextConnection(void);
 
+private:
 	static const BMDPixelFormat     PIXEL_FORMAT = bmdFormat8BitYUV;
 
 	static const BMDAudioSampleRate AUDIO_SAMPLE_RATE = bmdAudioSampleRate48kHz;
@@ -37,8 +38,13 @@ private:
 
 private:
 	int32_t         m_refCount;
+	int64_t         m_decklinkConnections;
 	IDeckLink*      m_deckLink;
 	IDeckLinkInput* m_deckLinkInput;
+
+	ProberState        m_state;
+	std::string        m_detectedMode;
+	BMDVideoConnection m_activeConnection;
 };
 
 #endif

@@ -63,14 +63,14 @@ std::string DeviceProber::GetDetectedMode()
 	return NULL;
 }
 
-std::string DeviceProber::GetActivePort()
+BMDVideoConnection DeviceProber::GetActiveConnection()
 {
 	if (m_captureDelegate)
 	{
-		return m_captureDelegate->GetActivePort();
+		return m_captureDelegate->GetActiveConnection();
 	}
 
-	return NULL;
+	return 0;
 }
 
 ULONG DeviceProber::AddRef(void)
