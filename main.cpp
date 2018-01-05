@@ -11,6 +11,7 @@
 #include "DeckLinkAPI.h"
 #include "ProberState.h"
 #include "DeviceProber.h"
+#include "HttpServer.h"
 
 static bool g_do_exit = false;
 
@@ -30,6 +31,8 @@ int main (UNUSED int argc, UNUSED char** argv)
 	std::list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
 	std::list<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
 
+	HttpServer* httpServer = new HttpServer(deviceProbers);
+
 	signal(SIGINT, sigfunc);
 	signal(SIGTERM, sigfunc);
 	signal(SIGHUP, sigfunc);
@@ -48,6 +51,7 @@ int main (UNUSED int argc, UNUSED char** argv)
 	std::cout << "Shutting down" << std::endl;
 	freeDeviceProbers(deviceProbers);
 	freeDeckLinkDevices(deckLinkDevices);
+	assert(httpServer->Release() == 0);
 
 	std::cout << "Bye." << std::endl;
 	return 0;

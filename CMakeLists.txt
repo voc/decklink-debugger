@@ -31,8 +31,9 @@ add_executable(decklink-debugger
 	main.cpp
 	CaptureDelegate.cpp
 	DeviceProber.cpp
+	HttpServer.cpp
 	${DECKLINK_INCLUDE_DIR}/DeckLinkAPIDispatch.cpp
 )
 
 # Specify Link-Libraries
-target_link_libraries(decklink-debugger dl pthread)
+target_link_libraries(decklink-debugger dl pthread microhttpd)

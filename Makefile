@@ -177,6 +177,33 @@ DeviceProber.cpp.s:
 	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/DeviceProber.cpp.s
 .PHONY : DeviceProber.cpp.s
 
+HttpServer.o: HttpServer.cpp.o
+
+.PHONY : HttpServer.o
+
+# target to build an object file
+HttpServer.cpp.o:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/HttpServer.cpp.o
+.PHONY : HttpServer.cpp.o
+
+HttpServer.i: HttpServer.cpp.i
+
+.PHONY : HttpServer.i
+
+# target to preprocess a source file
+HttpServer.cpp.i:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/HttpServer.cpp.i
+.PHONY : HttpServer.cpp.i
+
+HttpServer.s: HttpServer.cpp.s
+
+.PHONY : HttpServer.s
+
+# target to generate assembly for a file
+HttpServer.cpp.s:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/HttpServer.cpp.s
+.PHONY : HttpServer.cpp.s
+
 home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o: home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.cpp.o
 
 .PHONY : home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o
@@ -246,6 +273,9 @@ help:
 	@echo "... DeviceProber.o"
 	@echo "... DeviceProber.i"
 	@echo "... DeviceProber.s"
+	@echo "... HttpServer.o"
+	@echo "... HttpServer.i"
+	@echo "... HttpServer.s"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.i"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.s"
