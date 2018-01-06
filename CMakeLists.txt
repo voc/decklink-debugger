@@ -20,7 +20,7 @@ if(NOT EXISTS ${DECKLINK_INCLUDE_DIR}/DeckLinkAPI.h)
 	message(SEND_ERROR "Can't find DeckLinkAPI.h in '${DECKLINK_INCLUDE_DIR}', set dir with 'cmake -D DECKLINK_INCLUDE_DIR=path/to/linux/include .'")
 endif()
 
-include_directories(${DECKLINK_INCLUDE_DIR})
+include_directories(SYSTEM ${DECKLINK_INCLUDE_DIR})
 
 # Compile resources to Header-Files
 set(RESOURCE_COMPILER xxd)
@@ -47,9 +47,11 @@ add_executable(decklink-debugger
 	CaptureDelegate.cpp
 	DeviceProber.cpp
 	HttpServer.cpp
+	MutableVideoFrame.cpp
+	ImageEncoder.cpp
 	${DECKLINK_INCLUDE_DIR}/DeckLinkAPIDispatch.cpp
 	${COMPILED_RESOURCES}
 )
 
 # Specify Link-Libraries
-target_link_libraries(decklink-debugger dl pthread microhttpd)
+target_link_libraries(decklink-debugger dl pthread microhttpd png)

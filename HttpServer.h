@@ -2,17 +2,18 @@
 #define __HttpServer__
 
 #include <string>
-#include <list>
+#include <vector>
 #include <map>
 #include <microhttpd.h>
 
 #include "DeviceProber.h"
+#include "ImageEncoder.h"
 #include "tostring.h"
 
 class HttpServer
 {
 public:
-	HttpServer(std::list<DeviceProber*> deviceProbers);
+	HttpServer(std::vector<DeviceProber*> deviceProbers);
 	virtual ~HttpServer() {}
 
 	virtual ULONG AddRef(void);
@@ -39,9 +40,17 @@ private:
 		std::stringstream* responseBody
 	);
 
+	int captureRequestHandler(
+		std::string filename,
+		std::map<std::string, std::string>* responseHeaders,
+		std::stringstream* responseBody
+	);
+
 private:
 	int32_t                  m_refCount;
-	std::list<DeviceProber*> m_deviceProbers;
+	std::vector<DeviceProber*> m_deviceProbers;
+	std::vector<ImageEncoder*> m_imageEncoders;
+
 	MHD_Daemon*              m_daemon;
 };
 

@@ -60,9 +60,17 @@ std::string DeviceProber::GetDetectedMode(void)
 		if(m_captureDelegate->GetSignalDetected())
 		{
 			return m_captureDelegate->GetDetectedMode();
-		} else {
-			return "";
 		}
+	}
+
+	return "";
+}
+
+IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame(void)
+{
+	if (m_captureDelegate)
+	{
+		return m_captureDelegate->GetLastFrame();
 	}
 
 	return NULL;

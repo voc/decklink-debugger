@@ -19,11 +19,14 @@ public:
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect() { return m_canAutodetect; }
 
+	virtual IDeckLink*         GetIDecklink(void) { return m_deckLink; }
 	virtual bool               GetSignalDetected(void);
 	virtual std::string        GetDetectedMode(void);
 	virtual BMDVideoConnection GetActiveConnection(void);
 
 	virtual void               SelectNextConnection(void);
+
+	virtual IDeckLinkVideoInputFrame* GetLastFrame(void);
 
 private:
 	bool queryCanAutodetect(void);

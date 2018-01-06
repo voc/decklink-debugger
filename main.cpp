@@ -3,7 +3,7 @@
 #include <signal.h>
 #include <assert.h>
 
-#include <list>
+#include <vector>
 #include <string>
 #include <iostream>
 
@@ -15,21 +15,21 @@
 
 static bool g_do_exit = false;
 
-std::list<IDeckLink*> collectDeckLinkDevices(void);
-void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices);
+std::vector<IDeckLink*> collectDeckLinkDevices(void);
+void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices);
 
-std::list<DeviceProber*> createDeviceProbers(std::list<IDeckLink*> deckLinkDevices);
-void freeDeviceProbers(std::list<DeviceProber*> deviceProbers);
+std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkDevices);
+void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers);
 
-void printStatusList(std::list<DeviceProber*> deviceProbers);
+void printStatusList(std::vector<DeviceProber*> deviceProbers);
 char* getDeviceName(IDeckLink* deckLink);
 
 static void sigfunc(int signum);
 
 int main (UNUSED int argc, UNUSED char** argv)
 {
-	std::list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
-	std::list<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
+	std::vector<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
+	std::vector<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
 
 	HttpServer* httpServer = new HttpServer(deviceProbers);
 
@@ -40,7 +40,7 @@ int main (UNUSED int argc, UNUSED char** argv)
 	while(!g_do_exit) {
 		printStatusList(deviceProbers);
 
-		for(auto deviceProber: deviceProbers) {
+		for(DeviceProber* deviceProber: deviceProbers) {
 			if(!deviceProber->GetSignalDetected()) {
 				deviceProber->SelectNextConnection();
 			}
@@ -65,10 +65,10 @@ static void sigfunc(int signum)
 	}
 }
 
-std::list<IDeckLink*> collectDeckLinkDevices(void)
+std::vector<IDeckLink*> collectDeckLinkDevices(void)
 {
-	std::list<IDeckLink*>	deckLinkDevices;
-	IDeckLinkIterator*				deckLinkIterator;
+	std::vector<IDeckLink*> deckLinkDevices;
+	IDeckLinkIterator*    deckLinkIterator;
 
 	deckLinkIterator = CreateDeckLinkIteratorInstance();
 	if (deckLinkIterator == NULL)
@@ -84,7 +84,7 @@ std::list<IDeckLink*> collectDeckLinkDevices(void)
 	IDeckLink* deckLink = NULL;
 	while (deckLinkIterator->Next(&deckLink) == S_OK)
 	{
-		deckLinkDevices.push_front(deckLink);
+		deckLinkDevices.push_back(deckLink);
 	}
 
 	assert(deckLinkIterator->Release() == 0);
@@ -92,7 +92,7 @@ std::list<IDeckLink*> collectDeckLinkDevices(void)
 	return deckLinkDevices;
 }
 
-void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices)
+void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices)
 {
 	for(IDeckLink* deckLink: deckLinkDevices)
 	{
@@ -100,19 +100,19 @@ void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices)
 	}
 }
 
-std::list<DeviceProber*> createDeviceProbers(std::list<IDeckLink*> deckLinkDevices)
+std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkDevices)
 {
-	std::list<DeviceProber*> deviceProbersList;
+	std::vector<DeviceProber*> deviceProbers;
 
 	for(IDeckLink* deckLink: deckLinkDevices)
 	{
-		deviceProbersList.push_front(new DeviceProber(deckLink));
+		deviceProbers.push_back(new DeviceProber(deckLink));
 	}
 
-	return deviceProbersList;
+	return deviceProbers;
 }
 
-void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
+void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers)
 {
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
@@ -120,7 +120,7 @@ void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
 	}
 }
 
-void printStatusList(std::list<DeviceProber*> deviceProbers)
+void printStatusList(std::vector<DeviceProber*> deviceProbers)
 {
 	int deviceIndex = 0;
 

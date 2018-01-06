@@ -23,6 +23,8 @@ public:
 	virtual BMDVideoConnection GetActiveConnection(void)  { return m_activeConnection; }
 	virtual void               SelectNextConnection(void);
 
+	virtual IDeckLinkVideoInputFrame* GetLastFrame(void)  { return m_lastFrame; }
+
 private:
 	IDeckLinkDisplayMode* queryFirstDisplayMode(void);
 	IDeckLinkInput*       queryInputInterface(void);
@@ -38,10 +40,11 @@ private:
 	static const int                AUDIO_CHANNELS = 16;
 
 private:
-	int32_t         m_refCount;
-	int64_t         m_decklinkConnections;
-	IDeckLink*      m_deckLink;
-	IDeckLinkInput* m_deckLinkInput;
+	int32_t                   m_refCount;
+	int64_t                   m_decklinkConnections;
+	IDeckLink*                m_deckLink;
+	IDeckLinkInput*           m_deckLinkInput;
+	IDeckLinkVideoInputFrame* m_lastFrame;
 
 	bool               m_hasSignal;
 	std::string        m_detectedMode;

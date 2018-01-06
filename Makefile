@@ -204,6 +204,60 @@ HttpServer.cpp.s:
 	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/HttpServer.cpp.s
 .PHONY : HttpServer.cpp.s
 
+ImageEncoder.o: ImageEncoder.cpp.o
+
+.PHONY : ImageEncoder.o
+
+# target to build an object file
+ImageEncoder.cpp.o:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/ImageEncoder.cpp.o
+.PHONY : ImageEncoder.cpp.o
+
+ImageEncoder.i: ImageEncoder.cpp.i
+
+.PHONY : ImageEncoder.i
+
+# target to preprocess a source file
+ImageEncoder.cpp.i:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/ImageEncoder.cpp.i
+.PHONY : ImageEncoder.cpp.i
+
+ImageEncoder.s: ImageEncoder.cpp.s
+
+.PHONY : ImageEncoder.s
+
+# target to generate assembly for a file
+ImageEncoder.cpp.s:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/ImageEncoder.cpp.s
+.PHONY : ImageEncoder.cpp.s
+
+MutableVideoFrame.o: MutableVideoFrame.cpp.o
+
+.PHONY : MutableVideoFrame.o
+
+# target to build an object file
+MutableVideoFrame.cpp.o:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/MutableVideoFrame.cpp.o
+.PHONY : MutableVideoFrame.cpp.o
+
+MutableVideoFrame.i: MutableVideoFrame.cpp.i
+
+.PHONY : MutableVideoFrame.i
+
+# target to preprocess a source file
+MutableVideoFrame.cpp.i:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/MutableVideoFrame.cpp.i
+.PHONY : MutableVideoFrame.cpp.i
+
+MutableVideoFrame.s: MutableVideoFrame.cpp.s
+
+.PHONY : MutableVideoFrame.s
+
+# target to generate assembly for a file
+MutableVideoFrame.cpp.s:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/MutableVideoFrame.cpp.s
+.PHONY : MutableVideoFrame.cpp.s
+
 home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o: home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.cpp.o
 
 .PHONY : home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o
@@ -330,6 +384,12 @@ help:
 	@echo "... HttpServer.o"
 	@echo "... HttpServer.i"
 	@echo "... HttpServer.s"
+	@echo "... ImageEncoder.o"
+	@echo "... ImageEncoder.i"
+	@echo "... ImageEncoder.s"
+	@echo "... MutableVideoFrame.o"
+	@echo "... MutableVideoFrame.i"
+	@echo "... MutableVideoFrame.s"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.i"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.s"

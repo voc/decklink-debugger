@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <assert.h>
+
 #include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -21,7 +23,7 @@ int requestHandlerProxy(
 	size_t *upload_data_size,
 	void **con_cls);
 
-HttpServer::HttpServer(std::list<DeviceProber*> deviceProbers) :
+HttpServer::HttpServer(std::vector<DeviceProber*> deviceProbers) :
 	m_refCount(1),
 	m_deviceProbers(deviceProbers)
 {
@@ -46,6 +48,11 @@ HttpServer::HttpServer(std::list<DeviceProber*> deviceProbers) :
 		<< "\tListening to http://127.0.0.1:" << HttpServer::PORT << std::endl
 		<< "\tBrowse there for Pictures of the captured Material" << std::endl
 		<< std::endl;
+
+	for(DeviceProber* deviceProber : deviceProbers)
+	{
+		m_imageEncoders.push_back(new ImageEncoder(deviceProber));
+	}
 }
 
 ULONG HttpServer::AddRef(void)
@@ -58,6 +65,11 @@ ULONG HttpServer::Release(void)
 	int32_t newRefValue = __sync_sub_and_fetch(&m_refCount, 1);
 	if (newRefValue == 0)
 	{
+		for(ImageEncoder* imageEncoder : m_imageEncoders)
+		{
+			assert(imageEncoder->Release() == 0);
+		}
+
 		MHD_stop_daemon(m_daemon);
 
 		delete this;
@@ -74,9 +86,15 @@ int HttpServer::requestHandler(
 ) {
 	if(method == "GET" && url == "/") {
 		return indexRequestHandler(responseHeaders, responseBody);
-	} else if(method == "GET" && url.find("/static/") == 0) {
+	}
+	else if(method == "GET" && url.find("/static/") == 0) {
 		return staticRequestHandler(url.substr(sizeof("/static/") - 1), responseHeaders, responseBody);
-	} else {
+	}
+	else if(method == "GET" && url.find("/capture/") == 0) {
+		return captureRequestHandler(url.substr(sizeof("/capture/") - 1), responseHeaders, responseBody);
+	}
+	else
+	{
 		return MHD_HTTP_NOT_FOUND;
 	}
 }
@@ -91,6 +109,34 @@ int HttpServer::staticRequestHandler(
 		(*responseHeaders)["Cache-Control"] = "max-age=31536000, public";
 
 		(*responseBody) << rcs[filename].body;
+		return MHD_HTTP_OK;
+	}
+
+	return MHD_HTTP_NOT_FOUND;
+}
+
+int HttpServer::captureRequestHandler(
+	std::string filename,
+	std::map<std::string, std::string>* responseHeaders,
+	std::stringstream* responseBody
+) {
+	std::string index_str = filename.substr(0, filename.find("."));
+	unsigned long index;
+	try {
+		index = std::stoul(index_str);
+	}
+	catch(std::invalid_argument) {
+		return MHD_HTTP_NOT_FOUND;
+	}
+	catch(std::out_of_range) {
+		return MHD_HTTP_NOT_FOUND;
+	}
+
+	if(index < m_imageEncoders.size())
+	{
+		(*responseHeaders)["Content-Type"] = "image/png";
+
+		(*responseBody) << m_imageEncoders[index]->EncodeImage();
 		return MHD_HTTP_OK;
 	}
 
@@ -123,7 +169,7 @@ int HttpServer::indexRequestHandler(
 "				<th>GetSignalDetected</th>"
 "				<th>ActiveConnection</th>"
 "				<th>DetectedMode</th>"
-"				<th>Thumbnail</th>"
+"				<th>Capture</th>"
 "			</thead>"
 "			<tbody>";
 
@@ -145,11 +191,8 @@ int HttpServer::indexRequestHandler(
 		{
 			(*responseBody) <<
 "						<a href=\"/capture/" << deviceIndex << ".png\">"
-"							<img src=\"/capture/" << deviceIndex << ".png\">"
+"							Capture Image"
 "						</a>";
-		} else {
-			(*responseBody) <<
-"						<img src=\"/static/no-capture.png\">";
 		}
 
 		(*responseBody) <<
@@ -192,11 +235,18 @@ int requestHandlerProxy(
 	std::stringstream responseBody;
 	std::map<std::string, std::string> responseHeaders;
 
-	int status_code = httpServer->requestHandler(
-		std::string(method),
-		std::string(url),
-		&responseHeaders,
-		&responseBody);
+	int status_code;
+	try {
+		status_code = httpServer->requestHandler(
+			std::string(method),
+			std::string(url),
+			&responseHeaders,
+			&responseBody);
+	}
+	catch (const std::exception& ex) {
+		responseBody << "Interal Server Error";
+		status_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
+	}
 
 	struct MHD_Response *response = MHD_create_response_from_buffer(
 		responseBody.str().size(),
