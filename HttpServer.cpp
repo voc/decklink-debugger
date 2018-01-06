@@ -21,9 +21,10 @@ int requestHandlerProxy(
 	size_t *upload_data_size,
 	void **con_cls);
 
-HttpServer::HttpServer(std::list<DeviceProber*> deviceProbers) :
+HttpServer::HttpServer(std::vector<DeviceProber*> deviceProbers, std::vector<ImageEncoder*> imageEncoders) :
 	m_refCount(1),
-	m_deviceProbers(deviceProbers)
+	m_deviceProbers(deviceProbers),
+	m_imageEncoders(imageEncoders)
 {
 	m_daemon = MHD_start_daemon(
 		/* flags */   MHD_USE_SELECT_INTERNALLY,
@@ -74,9 +75,15 @@ int HttpServer::requestHandler(
 ) {
 	if(method == "GET" && url == "/") {
 		return indexRequestHandler(responseHeaders, responseBody);
-	} else if(method == "GET" && url.find("/static/") == 0) {
+	}
+	else if(method == "GET" && url.find("/static/") == 0) {
 		return staticRequestHandler(url.substr(sizeof("/static/") - 1), responseHeaders, responseBody);
-	} else {
+	}
+	else if(method == "GET" && url.find("/capture/") == 0) {
+		return captureRequestHandler(url.substr(sizeof("/capture/") - 1), responseHeaders, responseBody);
+	}
+	else
+	{
 		return MHD_HTTP_NOT_FOUND;
 	}
 }
@@ -91,6 +98,25 @@ int HttpServer::staticRequestHandler(
 		(*responseHeaders)["Cache-Control"] = "max-age=31536000, public";
 
 		(*responseBody) << rcs[filename].body;
+		return MHD_HTTP_OK;
+	}
+
+	return MHD_HTTP_NOT_FOUND;
+}
+
+int HttpServer::captureRequestHandler(
+	std::string filename,
+	std::map<std::string, std::string>* responseHeaders,
+	std::stringstream* responseBody
+) {
+	std::string index_str = filename.substr(0, filename.find("."));
+	unsigned long index = std::stoul(index_str);
+
+	if(index < m_imageEncoders.size())
+	{
+		(*responseHeaders)["Content-Type"] = "image/png";
+
+		(*responseBody) << m_imageEncoders[index]->GetLastImage();
 		return MHD_HTTP_OK;
 	}
 
@@ -192,11 +218,18 @@ int requestHandlerProxy(
 	std::stringstream responseBody;
 	std::map<std::string, std::string> responseHeaders;
 
-	int status_code = httpServer->requestHandler(
-		std::string(method),
-		std::string(url),
-		&responseHeaders,
-		&responseBody);
+	int status_code;
+	try {
+		status_code = httpServer->requestHandler(
+			std::string(method),
+			std::string(url),
+			&responseHeaders,
+			&responseBody);
+	}
+	catch (const std::exception& ex) {
+		responseBody << "Interal Server Error";
+		status_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
+	}
 
 	struct MHD_Response *response = MHD_create_response_from_buffer(
 		responseBody.str().size(),

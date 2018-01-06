@@ -3,7 +3,7 @@
 #include <signal.h>
 #include <assert.h>
 
-#include <list>
+#include <vector>
 #include <string>
 #include <iostream>
 
@@ -16,27 +16,27 @@
 
 static bool g_do_exit = false;
 
-std::list<IDeckLink*> collectDeckLinkDevices(void);
-void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices);
+std::vector<IDeckLink*> collectDeckLinkDevices(void);
+void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices);
 
-std::list<DeviceProber*> createDeviceProbers(std::list<IDeckLink*> deckLinkDevices);
-void freeDeviceProbers(std::list<DeviceProber*> deviceProbers);
+std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkDevices);
+void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers);
 
-std::list<ImageEncoder*> createImageEncoders(std::list<DeviceProber*> deviceProbers);
-void freeImageEncoders(std::list<ImageEncoder*> imageEncoders);
+std::vector<ImageEncoder*> createImageEncoders(std::vector<DeviceProber*> deviceProbers);
+void freeImageEncoders(std::vector<ImageEncoder*> imageEncoders);
 
-void printStatusList(std::list<DeviceProber*> deviceProbers);
+void printStatusList(std::vector<DeviceProber*> deviceProbers);
 char* getDeviceName(IDeckLink* deckLink);
 
 static void sigfunc(int signum);
 
 int main (UNUSED int argc, UNUSED char** argv)
 {
-	std::list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
-	std::list<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
-	std::list<ImageEncoder*> imageEncoders = createImageEncoders(deviceProbers);
+	std::vector<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
+	std::vector<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
+	std::vector<ImageEncoder*> imageEncoders = createImageEncoders(deviceProbers);
 
-	HttpServer* httpServer = new HttpServer(deviceProbers);
+	HttpServer* httpServer = new HttpServer(deviceProbers, imageEncoders);
 
 	signal(SIGINT, sigfunc);
 	signal(SIGTERM, sigfunc);
@@ -46,7 +46,7 @@ int main (UNUSED int argc, UNUSED char** argv)
 		printStatusList(deviceProbers);
 
 		for(ImageEncoder* imageEncoder: imageEncoders) {
-			imageEncoder->updateImage();
+			imageEncoder->UpdateImage();
 		}
 
 		for(DeviceProber* deviceProber: deviceProbers) {
@@ -75,9 +75,9 @@ static void sigfunc(int signum)
 	}
 }
 
-std::list<IDeckLink*> collectDeckLinkDevices(void)
+std::vector<IDeckLink*> collectDeckLinkDevices(void)
 {
-	std::list<IDeckLink*> deckLinkDevices;
+	std::vector<IDeckLink*> deckLinkDevices;
 	IDeckLinkIterator*    deckLinkIterator;
 
 	deckLinkIterator = CreateDeckLinkIteratorInstance();
@@ -94,7 +94,7 @@ std::list<IDeckLink*> collectDeckLinkDevices(void)
 	IDeckLink* deckLink = NULL;
 	while (deckLinkIterator->Next(&deckLink) == S_OK)
 	{
-		deckLinkDevices.push_front(deckLink);
+		deckLinkDevices.push_back(deckLink);
 	}
 
 	assert(deckLinkIterator->Release() == 0);
@@ -102,7 +102,7 @@ std::list<IDeckLink*> collectDeckLinkDevices(void)
 	return deckLinkDevices;
 }
 
-void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices)
+void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices)
 {
 	for(IDeckLink* deckLink: deckLinkDevices)
 	{
@@ -110,19 +110,19 @@ void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices)
 	}
 }
 
-std::list<DeviceProber*> createDeviceProbers(std::list<IDeckLink*> deckLinkDevices)
+std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkDevices)
 {
-	std::list<DeviceProber*> deviceProbers;
+	std::vector<DeviceProber*> deviceProbers;
 
 	for(IDeckLink* deckLink: deckLinkDevices)
 	{
-		deviceProbers.push_front(new DeviceProber(deckLink));
+		deviceProbers.push_back(new DeviceProber(deckLink));
 	}
 
 	return deviceProbers;
 }
 
-void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
+void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers)
 {
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
@@ -130,19 +130,19 @@ void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
 	}
 }
 
-std::list<ImageEncoder*> createImageEncoders(std::list<DeviceProber*> deviceProbers)
+std::vector<ImageEncoder*> createImageEncoders(std::vector<DeviceProber*> deviceProbers)
 {
-	std::list<ImageEncoder*> imageEncoders;
+	std::vector<ImageEncoder*> imageEncoders;
 
 	for(DeviceProber* deviceProber: deviceProbers)
 	{
-		imageEncoders.push_front(new ImageEncoder(deviceProber));
+		imageEncoders.push_back(new ImageEncoder(deviceProber));
 	}
 
 	return imageEncoders;
 }
 
-void freeImageEncoders(std::list<ImageEncoder*> imageEncoders)
+void freeImageEncoders(std::vector<ImageEncoder*> imageEncoders)
 {
 	for(ImageEncoder* imageEncoder : imageEncoders)
 	{
@@ -150,7 +150,7 @@ void freeImageEncoders(std::list<ImageEncoder*> imageEncoders)
 	}
 }
 
-void printStatusList(std::list<DeviceProber*> deviceProbers)
+void printStatusList(std::vector<DeviceProber*> deviceProbers)
 {
 	int deviceIndex = 0;
 

@@ -2,8 +2,12 @@
 
 #include "util.h"
 
+#include <string.h>
+
 #include <cstddef>
 #include <iostream>
+
+#define CompareREFIID(iid1, iid2)	(memcmp(&iid1, &iid2, sizeof(REFIID)) == 0)
 
 MutableVideoFrame::MutableVideoFrame(long width, long height, BMDPixelFormat pixelFormat) :
 	m_width(width),
@@ -31,6 +35,7 @@ int MutableVideoFrame::GetBytesPerPixel(BMDPixelFormat pixelFormat)
 		bytesPerPixel = 2;
 		break;
 	case bmdFormat8BitARGB:
+	case bmdFormat8BitBGRA:
 	case bmdFormat10BitYUV:
 	case bmdFormat10BitRGB:
 		bytesPerPixel = 4;
@@ -69,6 +74,29 @@ BMDFrameFlags MutableVideoFrame::GetFlags (void)
 HRESULT MutableVideoFrame::GetBytes (/* out */ void **buffer)
 {
 	*buffer = m_buf;
+	return S_OK;
+}
+
+
+HRESULT MutableVideoFrame::QueryInterface(REFIID iid, LPVOID *ppv)
+{
+	CFUUIDBytes iunknown = CFUUIDGetUUIDBytes(IUnknownUUID);
+
+	if (CompareREFIID(iid, iunknown))
+	{
+		*ppv = static_cast<IDeckLinkVideoFrame*>(this);
+	}
+	else if (CompareREFIID(iid, IID_IDeckLinkVideoFrame))
+	{
+		*ppv = static_cast<IDeckLinkVideoFrame*>(this);
+	}
+	else
+	{
+		*ppv = NULL;
+		return E_NOINTERFACE;
+	}
+
+	AddRef();
 	return S_OK;
 }
 

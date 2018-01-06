@@ -11,15 +11,17 @@ public:
 	virtual ULONG AddRef(void);
 	virtual ULONG Release(void);
 
-	virtual long GetWidth (void) = 0;
-	virtual long GetHeight (void) = 0;
-	virtual long GetRowBytes (void) = 0;
-	virtual BMDPixelFormat GetPixelFormat (void) = 0;
-	virtual BMDFrameFlags GetFlags (void) = 0;
-	virtual HRESULT GetBytes (/* out */ void **buffer) = 0;
+	virtual long GetWidth (void);
+	virtual long GetHeight (void);
+	virtual long GetRowBytes (void);
+	virtual BMDPixelFormat GetPixelFormat (void);
+	virtual BMDFrameFlags GetFlags (void);
+	virtual HRESULT GetBytes (/* out */ void **buffer);
 
-	virtual HRESULT GetTimecode (/* in */ BMDTimecodeFormat format, /* out */ IDeckLinkTimecode **timecode) = 0;
-	virtual HRESULT GetAncillaryData (/* out */ IDeckLinkVideoFrameAncillary **ancillary) = 0;
+	HRESULT QueryInterface(REFIID iid, LPVOID *ppv);
+
+	virtual HRESULT GetTimecode (/* in */ BMDTimecodeFormat format, /* out */ IDeckLinkTimecode **timecode);
+	virtual HRESULT GetAncillaryData (/* out */ IDeckLinkVideoFrameAncillary **ancillary);
 
 private:
 	int GetBytesPerPixel(BMDPixelFormat pixelFormat);

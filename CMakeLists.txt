@@ -54,4 +54,4 @@ add_executable(decklink-debugger
 )
 
 # Specify Link-Libraries
-target_link_libraries(decklink-debugger dl pthread microhttpd)
+target_link_libraries(decklink-debugger dl pthread microhttpd png)
