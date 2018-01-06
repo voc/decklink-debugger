@@ -64,20 +64,32 @@ ULONG HttpServer::Release(void)
 	return newRefValue;
 }
 
+int HttpServer::requestHandler(
+	std::string method,
+	std::string url,
+	std::map<std::string, std::string>* responseHeaders,
+	std::stringstream* responseBody
+) {
+	if(method == "GET" && url == "/") {
+		return indexRequestHandler(responseHeaders, responseBody);
+	} else {
+		return MHD_HTTP_NOT_FOUND;
+	}
+}
 int HttpServer::indexRequestHandler(
 	std::map<std::string, std::string>* responseHeaders,
 	std::stringstream* responseBody
 ) {
 	(*responseHeaders)["Content-Type"] = "text/html";
 
-	char hostname[128];
-	gethostname(hostname, sizeof(hostname));
+	char hostname[BUFSIZ];
+	gethostname(hostname, BUFSIZ);
 
 	(*responseBody) <<
 "<!DOCTYPE html>"
 "<html>"
 "	<head>"
-"		<meta http-equiv=\"refresh\" content=\"3; URL=/\">"
+"		<meta http-equiv=\"refresh\" content=\"1; URL=/\">"
 "		<style>"
 "			body {"
 "				font-family: sans-serif;"
@@ -97,10 +109,17 @@ int HttpServer::indexRequestHandler(
 "				padding: 5px 10px;"
 "			}"
 "			table tr:nth-child(odd) td {"
-"				background-color: #fafafa;"
+"				background-color: #f0f0f0;"
+"			}"
+"			table tr.no-signal {"
+"				color: #a0a0a0;"
 "			}"
 "			table td.none {"
 "				text-align: center;"
+"			}"
+"			table td img {"
+"				width: 160px;"
+"				height: 90px;"
 "			}"
 "		</style>"
 "	</head>"
@@ -111,7 +130,7 @@ int HttpServer::indexRequestHandler(
 "				<th>#</th>"
 "				<th>DeviceName</th>"
 "				<th>CanAutodetect</th>"
-"				<th>State</th>"
+"				<th>GetSignalDetected</th>"
 "				<th>ActiveConnection</th>"
 "				<th>DetectedMode</th>"
 "				<th>Thumbnail</th>"
@@ -123,17 +142,27 @@ int HttpServer::indexRequestHandler(
 	for(DeviceProber* deviceProber : m_deviceProbers)
 	{
 		(*responseBody) <<
-"				<tr>"
+"				<tr class=\"" << (deviceProber->GetSignalDetected() ? "signal" : "no-signal") << "\">"
 "					<td>" << deviceIndex << "</td>"
 "					<td>" << deviceProber->GetDeviceName() << "</td>"
 "					<td>" << deviceProber->CanAutodetect() << "</td>"
-"					<td>" << proberStateToString(deviceProber->GetState()) << "</td>"
+"					<td>" << deviceProber->GetSignalDetected() << "</td>"
 "					<td>" << videoConnectionToString(deviceProber->GetActiveConnection()) << "</td>"
 "					<td>" << deviceProber->GetDetectedMode() << "</td>"
-"					<td>"
+"					<td>";
+
+		if(deviceProber->GetSignalDetected())
+		{
+			(*responseBody) <<
 "						<a href=\"/capture/" << deviceIndex << ".png\">"
-"							<img src=\"/capture/" << deviceIndex << ".png\" width=\"320\" height=\"180\">"
-"						</a>"
+"							<img src=\"/capture/" << deviceIndex << ".png\">"
+"						</a>";
+		} else {
+			(*responseBody) <<
+"						<img src=\"/static/no-capture.png\">";
+		}
+
+		(*responseBody) <<
 "					</td>"
 "				</tr>";
 
@@ -156,20 +185,6 @@ int HttpServer::indexRequestHandler(
 "</html>" << std::endl;
 
 	return MHD_HTTP_OK;
-}
-
-int HttpServer::requestHandler(
-	std::string method,
-	std::string url,
-	std::map<std::string, std::string>* responseHeaders,
-	std::stringstream* responseBody
-) {
-	if(method == "GET" && url == "/")
-	{
-		return indexRequestHandler(responseHeaders, responseBody);
-	} else {
-		return MHD_HTTP_NOT_FOUND;
-	}
 }
 
 int requestHandlerProxy(

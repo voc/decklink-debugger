@@ -10,7 +10,6 @@
 #include "util.h"
 #include "tostring.h"
 #include "DeckLinkAPI.h"
-#include "ProberState.h"
 #include "DeviceProber.h"
 #include "HttpServer.h"
 
@@ -42,7 +41,7 @@ int main (UNUSED int argc, UNUSED char** argv)
 		printStatusList(deviceProbers);
 
 		for(auto deviceProber: deviceProbers) {
-			if(deviceProber->GetState() != SIGNAL_DETECTED) {
+			if(!deviceProber->GetSignalDetected()) {
 				deviceProber->SelectNextConnection();
 			}
 		}
@@ -130,7 +129,7 @@ void printStatusList(std::list<DeviceProber*> deviceProbers)
 		std::cout
 			<< "#" << deviceIndex << ", " << deviceProber->GetDeviceName()
 			<< ", CanAutodetect: "        << deviceProber->CanAutodetect()
-			<< ", State: "                << proberStateToString(deviceProber->GetState())
+			<< ", GetSignalDetected: "    << deviceProber->GetSignalDetected()
 			<< ", ActiveConnection: "     << videoConnectionToString(deviceProber->GetActiveConnection())
 			<< ", DetectedMode: "         << deviceProber->GetDetectedMode()
 			<< std::endl;

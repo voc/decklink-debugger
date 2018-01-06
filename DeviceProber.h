@@ -5,7 +5,6 @@
 
 #include "DeckLinkAPI.h"
 #include "CaptureDelegate.h"
-#include "ProberState.h"
 #include "util.h"
 
 class DeviceProber
@@ -20,7 +19,7 @@ public:
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect() { return m_canAutodetect; }
 
-	virtual ProberState        GetState(void);
+	virtual bool               GetSignalDetected(void);
 	virtual std::string        GetDetectedMode(void);
 	virtual BMDVideoConnection GetActiveConnection(void);
 

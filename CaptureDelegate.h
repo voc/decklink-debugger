@@ -2,7 +2,6 @@
 #define __CaptureDelegate__
 
 #include "DeckLinkAPI.h"
-#include "ProberState.h"
 #include "util.h"
 
 class CaptureDelegate : public IDeckLinkInputCallback
@@ -19,9 +18,9 @@ public:
 	virtual void Start(void);
 	virtual void Stop(void);
 
-	virtual ProberState        GetState(void);
-	virtual std::string        GetDetectedMode(void);
-	virtual BMDVideoConnection GetActiveConnection(void);
+	virtual bool               GetSignalDetected(void)    { return m_hasSignal; }
+	virtual std::string        GetDetectedMode(void)      { return m_detectedMode; }
+	virtual BMDVideoConnection GetActiveConnection(void)  { return m_activeConnection; }
 	virtual void               SelectNextConnection(void);
 
 private:
@@ -44,7 +43,7 @@ private:
 	IDeckLink*      m_deckLink;
 	IDeckLinkInput* m_deckLinkInput;
 
-	ProberState        m_state;
+	bool               m_hasSignal;
 	std::string        m_detectedMode;
 	BMDVideoConnection m_activeConnection;
 };
