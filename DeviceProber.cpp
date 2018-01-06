@@ -57,7 +57,12 @@ std::string DeviceProber::GetDetectedMode(void)
 {
 	if (m_captureDelegate)
 	{
-		return m_captureDelegate->GetDetectedMode();
+		if(m_captureDelegate->GetState() == SIGNAL_DETECTED)
+		{
+			return m_captureDelegate->GetDetectedMode();
+		} else {
+			return "";
+		}
 	}
 
 	return NULL;

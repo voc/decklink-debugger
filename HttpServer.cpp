@@ -39,8 +39,11 @@ HttpServer::HttpServer(std::list<DeviceProber*> deviceProbers) :
 		exit(1);
 	}
 
-	std::cout << "Listening to http://127.0.0.1:" << HttpServer::PORT << std::endl << std::endl;
-
+	std::cout
+		<< std::endl
+		<< "\tListening to http://127.0.0.1:" << HttpServer::PORT << std::endl
+		<< "\tBrowse there for Pictures of the captured Material" << std::endl
+		<< std::endl;
 }
 
 ULONG HttpServer::AddRef(void)
@@ -61,21 +64,112 @@ ULONG HttpServer::Release(void)
 	return newRefValue;
 }
 
+int HttpServer::indexRequestHandler(
+	std::map<std::string, std::string>* responseHeaders,
+	std::stringstream* responseBody
+) {
+	(*responseHeaders)["Content-Type"] = "text/html";
+
+	char hostname[128];
+	gethostname(hostname, sizeof(hostname));
+
+	(*responseBody) <<
+"<!DOCTYPE html>"
+"<html>"
+"	<head>"
+"		<meta http-equiv=\"refresh\" content=\"3; URL=/\">"
+"		<style>"
+"			body {"
+"				font-family: sans-serif;"
+"			}"
+""
+"			.error { color: #FF3333; }"
+"			.warning { color: #FFAD33; }"
+"			.good { color: #4CAF50; }"
+""
+"			table {"
+"				border: 2px solid #cccccc;"
+"				border-collapse: collapse;"
+"			}"
+"			table td, table th {"
+"				border-left: 1px solid #cccccc;"
+"				border-right: 1px solid #cccccc;"
+"				padding: 5px 10px;"
+"			}"
+"			table tr:nth-child(odd) td {"
+"				background-color: #fafafa;"
+"			}"
+"			table td.none {"
+"				text-align: center;"
+"			}"
+"		</style>"
+"	</head>"
+"	<body>"
+"		<h1>DecklinkDebugger on <u>" << hostname << "</u></h1>"
+"		<table>"
+"			<thead>"
+"				<th>#</th>"
+"				<th>DeviceName</th>"
+"				<th>CanAutodetect</th>"
+"				<th>State</th>"
+"				<th>ActiveConnection</th>"
+"				<th>DetectedMode</th>"
+"				<th>Thumbnail</th>"
+"			</thead>"
+"			<tbody>";
+
+	int deviceIndex = 0;
+
+	for(DeviceProber* deviceProber : m_deviceProbers)
+	{
+		(*responseBody) <<
+"				<tr>"
+"					<td>" << deviceIndex << "</td>"
+"					<td>" << deviceProber->GetDeviceName() << "</td>"
+"					<td>" << deviceProber->CanAutodetect() << "</td>"
+"					<td>" << proberStateToString(deviceProber->GetState()) << "</td>"
+"					<td>" << videoConnectionToString(deviceProber->GetActiveConnection()) << "</td>"
+"					<td>" << deviceProber->GetDetectedMode() << "</td>"
+"					<td>"
+"						<a href=\"/capture/" << deviceIndex << ".png\">"
+"							<img src=\"/capture/" << deviceIndex << ".png\" width=\"320\" height=\"180\">"
+"						</a>"
+"					</td>"
+"				</tr>";
+
+		deviceIndex++;
+	}
+
+	if (deviceIndex == 0) {
+		(*responseBody) <<
+"				<tr>"
+"					<td colspan=\"7\" class=\"none\">"
+"						No DeckLink devices found"
+"					</td>"
+"				</tr>";
+	}
+
+	(*responseBody) <<
+"			</tbody>"
+"		</table>"
+"	</body>"
+"</html>" << std::endl;
+
+	return MHD_HTTP_OK;
+}
+
 int HttpServer::requestHandler(
 	std::string method,
 	std::string url,
 	std::map<std::string, std::string>* responseHeaders,
 	std::stringstream* responseBody
 ) {
-	(*responseHeaders)["Content-Type"] = "text/html";
-	(*responseHeaders)["X-Foo"] = "bar";
-
-	(*responseBody)
-		<< "<html><body>Hello, browser at "
-		<< method << " " << url
-		<< "!</body></html>";
-
-	return MHD_HTTP_OK;
+	if(method == "GET" && url == "/")
+	{
+		return indexRequestHandler(responseHeaders, responseBody);
+	} else {
+		return MHD_HTTP_NOT_FOUND;
+	}
 }
 
 int requestHandlerProxy(

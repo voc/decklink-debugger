@@ -5,7 +5,9 @@
 #include <list>
 #include <map>
 #include <microhttpd.h>
+
 #include "DeviceProber.h"
+#include "tostring.h"
 
 class HttpServer
 {
@@ -19,6 +21,11 @@ public:
 	int requestHandler(
 		std::string method,
 		std::string url,
+		std::map<std::string, std::string>* responseHeaders,
+		std::stringstream* responseBody
+	);
+
+	int indexRequestHandler(
 		std::map<std::string, std::string>* responseHeaders,
 		std::stringstream* responseBody
 	);

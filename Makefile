@@ -258,6 +258,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+tostring.o: tostring.cpp.o
+
+.PHONY : tostring.o
+
+# target to build an object file
+tostring.cpp.o:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/tostring.cpp.o
+.PHONY : tostring.cpp.o
+
+tostring.i: tostring.cpp.i
+
+.PHONY : tostring.i
+
+# target to preprocess a source file
+tostring.cpp.i:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/tostring.cpp.i
+.PHONY : tostring.cpp.i
+
+tostring.s: tostring.cpp.s
+
+.PHONY : tostring.s
+
+# target to generate assembly for a file
+tostring.cpp.s:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/tostring.cpp.s
+.PHONY : tostring.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -282,6 +309,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... tostring.o"
+	@echo "... tostring.i"
+	@echo "... tostring.s"
 .PHONY : help
 
 

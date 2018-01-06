@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
+#include <assert.h>
 
 #include <list>
 #include <string>
 #include <iostream>
 
 #include "util.h"
-#include "assert.h"
+#include "tostring.h"
 #include "DeckLinkAPI.h"
 #include "ProberState.h"
 #include "DeviceProber.h"
@@ -117,39 +118,6 @@ void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
 		assert(deviceProber->Release() == 0);
-	}
-}
-
-std::string proberStateToString(ProberState proberState)
-{
-	switch(proberState)
-	{
-		case SEARCHING_FOR_SIGNAL:
-			return "SEARCHING_FOR_SIGNAL";
-
-		case SIGNAL_DETECTED:
-			return "SIGNAL_DETECTED";
-
-		default:
-			return "UNDEFINED";
-	}
-}
-
-std::string videoConnectionToString(BMDVideoConnection videoConnection)
-{
-	switch(videoConnection)
-	{
-		case bmdVideoConnectionSDI:
-			return "SDI";
-
-		case bmdVideoConnectionHDMI:
-			return "HDMI";
-
-		case bmdVideoConnectionOpticalSDI:
-			return "OpticalSDI";
-
-		default:
-			return "UNDEFINED";
 	}
 }
 

@@ -29,6 +29,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 # Build Binary
 add_executable(decklink-debugger
 	main.cpp
+	tostring.cpp
 	CaptureDelegate.cpp
 	DeviceProber.cpp
 	HttpServer.cpp
