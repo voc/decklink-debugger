@@ -12,7 +12,6 @@
 #include "DeckLinkAPI.h"
 #include "DeviceProber.h"
 #include "HttpServer.h"
-#include "ImageEncoder.h"
 
 static bool g_do_exit = false;
 
@@ -21,9 +20,6 @@ void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices);
 
 std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkDevices);
 void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers);
-
-std::vector<ImageEncoder*> createImageEncoders(std::vector<DeviceProber*> deviceProbers);
-void freeImageEncoders(std::vector<ImageEncoder*> imageEncoders);
 
 void printStatusList(std::vector<DeviceProber*> deviceProbers);
 char* getDeviceName(IDeckLink* deckLink);
@@ -34,9 +30,8 @@ int main (UNUSED int argc, UNUSED char** argv)
 {
 	std::vector<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
 	std::vector<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
-	std::vector<ImageEncoder*> imageEncoders = createImageEncoders(deviceProbers);
 
-	HttpServer* httpServer = new HttpServer(deviceProbers, imageEncoders);
+	HttpServer* httpServer = new HttpServer(deviceProbers);
 
 	signal(SIGINT, sigfunc);
 	signal(SIGTERM, sigfunc);
@@ -44,10 +39,6 @@ int main (UNUSED int argc, UNUSED char** argv)
 
 	while(!g_do_exit) {
 		printStatusList(deviceProbers);
-
-		for(ImageEncoder* imageEncoder: imageEncoders) {
-			imageEncoder->UpdateImage();
-		}
 
 		for(DeviceProber* deviceProber: deviceProbers) {
 			if(!deviceProber->GetSignalDetected()) {
@@ -58,7 +49,6 @@ int main (UNUSED int argc, UNUSED char** argv)
 	}
 
 	std::cout << "Shutting down" << std::endl;
-	freeImageEncoders(imageEncoders);
 	freeDeviceProbers(deviceProbers);
 	freeDeckLinkDevices(deckLinkDevices);
 	assert(httpServer->Release() == 0);
@@ -127,26 +117,6 @@ void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers)
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
 		assert(deviceProber->Release() == 0);
-	}
-}
-
-std::vector<ImageEncoder*> createImageEncoders(std::vector<DeviceProber*> deviceProbers)
-{
-	std::vector<ImageEncoder*> imageEncoders;
-
-	for(DeviceProber* deviceProber: deviceProbers)
-	{
-		imageEncoders.push_back(new ImageEncoder(deviceProber));
-	}
-
-	return imageEncoders;
-}
-
-void freeImageEncoders(std::vector<ImageEncoder*> imageEncoders)
-{
-	for(ImageEncoder* imageEncoder : imageEncoders)
-	{
-		assert(imageEncoder->Release() == 0);
 	}
 }
 

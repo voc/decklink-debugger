@@ -13,7 +13,7 @@
 class HttpServer
 {
 public:
-	HttpServer(std::vector<DeviceProber*> deviceProbers, std::vector<ImageEncoder*> imageEncoders);
+	HttpServer(std::vector<DeviceProber*> deviceProbers);
 	virtual ~HttpServer() {}
 
 	virtual ULONG AddRef(void);

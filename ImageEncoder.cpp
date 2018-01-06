@@ -37,18 +37,20 @@ ULONG ImageEncoder::Release(void)
 	return newRefValue;
 }
 
-void ImageEncoder::UpdateImage() {
+std::string ImageEncoder::EncodeImage() {
 	IDeckLinkVideoFrame* frame = m_deviceProber->GetLastFrame();
 	if(frame == NULL) {
-		return;
+		return "";
 	}
 
 	frame->AddRef();
 
 	frame = convertFrameIfReqired(frame);
-	m_lastImage = encodeToPng(frame);
+	std::string encodedImage = encodeToPng(frame);
 
 	frame->Release();
+
+	return encodedImage;
 }
 
 void pngWriteCallback(png_structp  png_ptr, png_bytep data, png_size_t length)
