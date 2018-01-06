@@ -9,8 +9,7 @@
 
 #include <microhttpd.h>
 
-#include "rc.hex/no-capture.png.hex"
-#include "rc.hex/style.css.hex"
+#include "rc.h"
 
 int requestHandlerProxy(
 	void *cls,
@@ -87,20 +86,15 @@ int HttpServer::staticRequestHandler(
 	std::map<std::string, std::string>* responseHeaders,
 	std::stringstream* responseBody
 ) {
-	if(filename == "no-capture.png") {
-		(*responseHeaders)["Content-Type"] = "image/png";
-		(*responseBody) << std::string((const char*)rc_no_capture_png, rc_no_capture_png_len);
-	}
-	else if(filename == "style.css") {
-		(*responseHeaders)["Content-Type"] = "text/css";
-		(*responseBody) << std::string((const char*)rc_style_css, rc_style_css_len);
-	}
-	else {
-		return MHD_HTTP_NOT_FOUND;
+	if(rcs.count(filename) == 1) {
+		(*responseHeaders)["Content-Type"] = rcs[filename].mimetype;
+		(*responseHeaders)["Cache-Control"] = "max-age=31536000, public";
+
+		(*responseBody) << rcs[filename].body;
+		return MHD_HTTP_OK;
 	}
 
-	(*responseHeaders)["Cache-Control"] = "max-age=31536000, public";
-	return MHD_HTTP_OK;
+	return MHD_HTTP_NOT_FOUND;
 }
 
 int HttpServer::indexRequestHandler(
