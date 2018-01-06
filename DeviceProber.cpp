@@ -44,20 +44,25 @@ bool DeviceProber::queryCanAutodetect(void)
 	return formatDetectionSupported;
 }
 
-ProberState DeviceProber::GetState(void) {
+bool DeviceProber::GetSignalDetected(void) {
 	if (m_captureDelegate)
 	{
-		return m_captureDelegate->GetState();
+		return m_captureDelegate->GetSignalDetected();
 	}
 
-	return UNDEFINED;
+	return false;
 }
 
 std::string DeviceProber::GetDetectedMode(void)
 {
 	if (m_captureDelegate)
 	{
-		return m_captureDelegate->GetDetectedMode();
+		if(m_captureDelegate->GetSignalDetected())
+		{
+			return m_captureDelegate->GetDetectedMode();
+		} else {
+			return "";
+		}
 	}
 
 	return NULL;

@@ -1,4 +1,4 @@
-#include "assert.h"
+#include <assert.h>
 
 #include <array>
 #include <stdio.h>
@@ -10,7 +10,7 @@
 CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_refCount(1),
 	m_deckLink(deckLink),
-	m_state(SEARCHING_FOR_SIGNAL),
+	m_hasSignal(false),
 	m_activeConnection(0)
 {
 	m_deckLink->AddRef();
@@ -197,32 +197,15 @@ BMDVideoConnection CaptureDelegate::querySelectedConnection(void)
 	return activeConnection;
 }
 
-
-
-ProberState CaptureDelegate::GetState(void)
-{
-	return m_state;
-}
-
-std::string CaptureDelegate::GetDetectedMode(void)
-{
-	return m_detectedMode;
-}
-
-BMDVideoConnection CaptureDelegate::GetActiveConnection(void)
-{
-	return m_activeConnection;
-}
-
 HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, UNUSED IDeckLinkAudioInputPacket* audioFrame)
 {
-	if (videoFrame->GetFlags() & bmdFrameHasNoInputSource)
+	if (videoFrame == NULL || videoFrame->GetFlags() & bmdFrameHasNoInputSource)
 	{
-		m_state = SEARCHING_FOR_SIGNAL;
+		m_hasSignal = false;
 	}
 	else
 	{
-		m_state = SIGNAL_DETECTED;
+		m_hasSignal = true;
 
 
 		// it sometimes happens, that the switch to another connection is ignored when, just at this time,
