@@ -20,6 +20,7 @@ public:
 
 	virtual bool               GetSignalDetected(void)    { return m_hasSignal; }
 	virtual std::string        GetDetectedMode(void)      { return m_detectedMode; }
+	virtual BMDPixelFormat     GetPixelFormat(void)       { return m_pixelFormat; }
 	virtual BMDVideoConnection GetActiveConnection(void)  { return m_activeConnection; }
 	virtual void               SelectNextConnection(void);
 
@@ -48,6 +49,7 @@ private:
 
 	bool               m_hasSignal;
 	std::string        m_detectedMode;
+	BMDPixelFormat     m_pixelFormat;
 	BMDVideoConnection m_activeConnection;
 };
 

@@ -13,6 +13,7 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_lastFrame(NULL),
 	m_hasSignal(false),
 	m_detectedMode(""),
+	m_pixelFormat(0),
 	m_activeConnection(0)
 {
 	m_deckLink->AddRef();
@@ -213,6 +214,8 @@ HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoF
 			m_lastFrame->Release();
 		}
 
+		m_pixelFormat = videoFrame->GetPixelFormat();
+
 		m_lastFrame = videoFrame;
 		m_lastFrame->AddRef();
 
@@ -229,18 +232,17 @@ HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChang
 	HRESULT result;
 	char*	displayModeName = NULL;
 
+	bool isRgb = formatFlags & bmdDetectedVideoInputRGB444;
+
 	mode->GetName((const char**)&displayModeName);
 	m_detectedMode = displayModeName;
 	m_detectedMode += " ";
-	m_detectedMode += (formatFlags & bmdDetectedVideoInputRGB444 ? "RGB" : "YUV");
+	m_detectedMode += (isRgb ? "RGB" : "YUV");
 
 	if (displayModeName)
 		free(displayModeName);
 
-	BMDPixelFormat pixelFormat = bmdFormat10BitYUV;
-
-	if (formatFlags & bmdDetectedVideoInputRGB444)
-		pixelFormat = bmdFormat10BitRGB;
+	BMDPixelFormat pixelFormat = (isRgb ? bmdFormat10BitRGB : bmdFormat10BitYUV);
 
 	m_deckLinkInput->StopStreams();
 	result = m_deckLinkInput->EnableVideoInput(mode->GetDisplayMode(), pixelFormat, VIDEO_INPUT_FLAGS);
@@ -265,7 +267,7 @@ ULONG CaptureDelegate::Release(void)
 	int32_t newRefValue = __sync_sub_and_fetch(&m_refCount, 1);
 	if (newRefValue == 0)
 	{
-		assert(m_deckLinkInput->Release() == 0);
+		m_deckLinkInput->Release();
 
 		m_deckLink->Release();
 

@@ -128,10 +128,11 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers)
 	{
 		std::cout
 			<< "#" << deviceIndex << ", " << deviceProber->GetDeviceName()
-			<< ", CanAutodetect: "        << deviceProber->CanAutodetect()
-			<< ", GetSignalDetected: "    << deviceProber->GetSignalDetected()
+			<< ", CanAutodetect: "        << boolToString(deviceProber->CanAutodetect())
+			<< ", GetSignalDetected: "    << boolToString(deviceProber->GetSignalDetected())
 			<< ", ActiveConnection: "     << videoConnectionToString(deviceProber->GetActiveConnection())
 			<< ", DetectedMode: "         << deviceProber->GetDetectedMode()
+			<< ", PixelFormat: "          << pixelFormatToString(deviceProber->GetPixelFormat())
 			<< std::endl;
 
 		deviceIndex++;

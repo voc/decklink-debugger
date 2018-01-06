@@ -169,6 +169,7 @@ int HttpServer::indexRequestHandler(
 "				<th>GetSignalDetected</th>"
 "				<th>ActiveConnection</th>"
 "				<th>DetectedMode</th>"
+"				<th>PixelFormat</th>"
 "				<th>Capture</th>"
 "			</thead>"
 "			<tbody>";
@@ -181,10 +182,11 @@ int HttpServer::indexRequestHandler(
 "				<tr class=\"" << (deviceProber->GetSignalDetected() ? "signal" : "no-signal") << "\">"
 "					<td>" << deviceIndex << "</td>"
 "					<td>" << deviceProber->GetDeviceName() << "</td>"
-"					<td>" << deviceProber->CanAutodetect() << "</td>"
-"					<td>" << deviceProber->GetSignalDetected() << "</td>"
+"					<td>" << boolToString(deviceProber->CanAutodetect()) << "</td>"
+"					<td>" << boolToString(deviceProber->GetSignalDetected()) << "</td>"
 "					<td>" << videoConnectionToString(deviceProber->GetActiveConnection()) << "</td>"
 "					<td>" << deviceProber->GetDetectedMode() << "</td>"
+"					<td>" << pixelFormatToString(deviceProber->GetPixelFormat()) << "</td>"
 "					<td>";
 
 		if(deviceProber->GetSignalDetected())

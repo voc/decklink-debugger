@@ -66,6 +66,19 @@ std::string DeviceProber::GetDetectedMode(void)
 	return "";
 }
 
+BMDPixelFormat DeviceProber::GetPixelFormat(void)
+{
+	if (m_captureDelegate)
+	{
+		if(m_captureDelegate->GetSignalDetected())
+		{
+			return m_captureDelegate->GetPixelFormat();
+		}
+	}
+
+	return 0;
+}
+
 IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame(void)
 {
 	if (m_captureDelegate)
