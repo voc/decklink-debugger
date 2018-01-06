@@ -1,0 +1,30 @@
+body {
+	font-family: sans-serif;
+}
+
+.error { color: #FF3333; }
+.warning { color: #FFAD33; }
+.good { color: #4CAF50; }
+
+table {
+	border: 2px solid #cccccc;
+	border-collapse: collapse;
+}
+table td, table th {
+	border-left: 1px solid #cccccc;
+	border-right: 1px solid #cccccc;
+	padding: 5px 10px;
+}
+table tr:nth-child(odd) td {
+	background-color: #f0f0f0;
+}
+table tr.no-signal {
+	color: #a0a0a0;
+}
+table td.none {
+	text-align: center;
+}
+table td img {
+	width: 160px;
+	height: 90px;
+}

@@ -9,6 +9,9 @@
 
 #include <microhttpd.h>
 
+#include "rc.hex/no-capture.png.hex"
+#include "rc.hex/style.css.hex"
+
 int requestHandlerProxy(
 	void *cls,
 	struct MHD_Connection *connection,
@@ -72,10 +75,34 @@ int HttpServer::requestHandler(
 ) {
 	if(method == "GET" && url == "/") {
 		return indexRequestHandler(responseHeaders, responseBody);
+	} else if(method == "GET" && url.find("/static/") == 0) {
+		return staticRequestHandler(url.substr(sizeof("/static/") - 1), responseHeaders, responseBody);
 	} else {
 		return MHD_HTTP_NOT_FOUND;
 	}
 }
+
+int HttpServer::staticRequestHandler(
+	std::string filename,
+	std::map<std::string, std::string>* responseHeaders,
+	std::stringstream* responseBody
+) {
+	if(filename == "no-capture.png") {
+		(*responseHeaders)["Content-Type"] = "image/png";
+		(*responseBody) << std::string((const char*)rc_no_capture_png, rc_no_capture_png_len);
+	}
+	else if(filename == "style.css") {
+		(*responseHeaders)["Content-Type"] = "text/css";
+		(*responseBody) << std::string((const char*)rc_style_css, rc_style_css_len);
+	}
+	else {
+		return MHD_HTTP_NOT_FOUND;
+	}
+
+	(*responseHeaders)["Cache-Control"] = "max-age=31536000, public";
+	return MHD_HTTP_OK;
+}
+
 int HttpServer::indexRequestHandler(
 	std::map<std::string, std::string>* responseHeaders,
 	std::stringstream* responseBody
@@ -90,38 +117,7 @@ int HttpServer::indexRequestHandler(
 "<html>"
 "	<head>"
 "		<meta http-equiv=\"refresh\" content=\"1; URL=/\">"
-"		<style>"
-"			body {"
-"				font-family: sans-serif;"
-"			}"
-""
-"			.error { color: #FF3333; }"
-"			.warning { color: #FFAD33; }"
-"			.good { color: #4CAF50; }"
-""
-"			table {"
-"				border: 2px solid #cccccc;"
-"				border-collapse: collapse;"
-"			}"
-"			table td, table th {"
-"				border-left: 1px solid #cccccc;"
-"				border-right: 1px solid #cccccc;"
-"				padding: 5px 10px;"
-"			}"
-"			table tr:nth-child(odd) td {"
-"				background-color: #f0f0f0;"
-"			}"
-"			table tr.no-signal {"
-"				color: #a0a0a0;"
-"			}"
-"			table td.none {"
-"				text-align: center;"
-"			}"
-"			table td img {"
-"				width: 160px;"
-"				height: 90px;"
-"			}"
-"		</style>"
+"		<link rel=\"stylesheet\" type=\"text/css\" href=\"static/style.css\">"
 "	</head>"
 "	<body>"
 "		<h1>DecklinkDebugger on <u>" << hostname << "</u></h1>"

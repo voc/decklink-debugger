@@ -25,13 +25,19 @@ public:
 		std::stringstream* responseBody
 	);
 
+private:
+	static const int PORT = 8042;
+
 	int indexRequestHandler(
 		std::map<std::string, std::string>* responseHeaders,
 		std::stringstream* responseBody
 	);
 
-private:
-	static const int PORT = 8042;
+	int staticRequestHandler(
+		std::string filename,
+		std::map<std::string, std::string>* responseHeaders,
+		std::stringstream* responseBody
+	);
 
 private:
 	int32_t                  m_refCount;
