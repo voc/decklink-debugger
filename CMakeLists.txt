@@ -43,6 +43,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 add_executable(decklink-debugger
 	main.cpp
 	tostring.cpp
+	rc.cpp
 	CaptureDelegate.cpp
 	DeviceProber.cpp
 	HttpServer.cpp

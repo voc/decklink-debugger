@@ -199,7 +199,7 @@ BMDVideoConnection CaptureDelegate::querySelectedConnection(void)
 
 HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, UNUSED IDeckLinkAudioInputPacket* audioFrame)
 {
-	if (videoFrame->GetFlags() & bmdFrameHasNoInputSource)
+	if (videoFrame == NULL || videoFrame->GetFlags() & bmdFrameHasNoInputSource)
 	{
 		m_hasSignal = false;
 	}

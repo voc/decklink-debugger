@@ -258,6 +258,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+rc.o: rc.cpp.o
+
+.PHONY : rc.o
+
+# target to build an object file
+rc.cpp.o:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/rc.cpp.o
+.PHONY : rc.cpp.o
+
+rc.i: rc.cpp.i
+
+.PHONY : rc.i
+
+# target to preprocess a source file
+rc.cpp.i:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/rc.cpp.i
+.PHONY : rc.cpp.i
+
+rc.s: rc.cpp.s
+
+.PHONY : rc.s
+
+# target to generate assembly for a file
+rc.cpp.s:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/rc.cpp.s
+.PHONY : rc.cpp.s
+
 tostring.o: tostring.cpp.o
 
 .PHONY : tostring.o
@@ -309,6 +336,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... rc.o"
+	@echo "... rc.i"
+	@echo "... rc.s"
 	@echo "... tostring.o"
 	@echo "... tostring.i"
 	@echo "... tostring.s"
