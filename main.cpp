@@ -12,6 +12,7 @@
 #include "DeckLinkAPI.h"
 #include "DeviceProber.h"
 #include "HttpServer.h"
+#include "ImageEncoder.h"
 
 static bool g_do_exit = false;
 
@@ -20,6 +21,9 @@ void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices);
 
 std::list<DeviceProber*> createDeviceProbers(std::list<IDeckLink*> deckLinkDevices);
 void freeDeviceProbers(std::list<DeviceProber*> deviceProbers);
+
+std::list<ImageEncoder*> createImageEncoders(std::list<DeviceProber*> deviceProbers);
+void freeImageEncoders(std::list<ImageEncoder*> imageEncoders);
 
 void printStatusList(std::list<DeviceProber*> deviceProbers);
 char* getDeviceName(IDeckLink* deckLink);
@@ -30,6 +34,7 @@ int main (UNUSED int argc, UNUSED char** argv)
 {
 	std::list<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
 	std::list<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
+	std::list<ImageEncoder*> imageEncoders = createImageEncoders(deviceProbers);
 
 	HttpServer* httpServer = new HttpServer(deviceProbers);
 
@@ -40,7 +45,11 @@ int main (UNUSED int argc, UNUSED char** argv)
 	while(!g_do_exit) {
 		printStatusList(deviceProbers);
 
-		for(auto deviceProber: deviceProbers) {
+		for(ImageEncoder* imageEncoder: imageEncoders) {
+			imageEncoder->updateImage();
+		}
+
+		for(DeviceProber* deviceProber: deviceProbers) {
 			if(!deviceProber->GetSignalDetected()) {
 				deviceProber->SelectNextConnection();
 			}
@@ -49,6 +58,7 @@ int main (UNUSED int argc, UNUSED char** argv)
 	}
 
 	std::cout << "Shutting down" << std::endl;
+	freeImageEncoders(imageEncoders);
 	freeDeviceProbers(deviceProbers);
 	freeDeckLinkDevices(deckLinkDevices);
 	assert(httpServer->Release() == 0);
@@ -67,8 +77,8 @@ static void sigfunc(int signum)
 
 std::list<IDeckLink*> collectDeckLinkDevices(void)
 {
-	std::list<IDeckLink*>	deckLinkDevices;
-	IDeckLinkIterator*				deckLinkIterator;
+	std::list<IDeckLink*> deckLinkDevices;
+	IDeckLinkIterator*    deckLinkIterator;
 
 	deckLinkIterator = CreateDeckLinkIteratorInstance();
 	if (deckLinkIterator == NULL)
@@ -102,14 +112,14 @@ void freeDeckLinkDevices(std::list<IDeckLink*> deckLinkDevices)
 
 std::list<DeviceProber*> createDeviceProbers(std::list<IDeckLink*> deckLinkDevices)
 {
-	std::list<DeviceProber*> deviceProbersList;
+	std::list<DeviceProber*> deviceProbers;
 
 	for(IDeckLink* deckLink: deckLinkDevices)
 	{
-		deviceProbersList.push_front(new DeviceProber(deckLink));
+		deviceProbers.push_front(new DeviceProber(deckLink));
 	}
 
-	return deviceProbersList;
+	return deviceProbers;
 }
 
 void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
@@ -117,6 +127,26 @@ void freeDeviceProbers(std::list<DeviceProber*> deviceProbers)
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
 		assert(deviceProber->Release() == 0);
+	}
+}
+
+std::list<ImageEncoder*> createImageEncoders(std::list<DeviceProber*> deviceProbers)
+{
+	std::list<ImageEncoder*> imageEncoders;
+
+	for(DeviceProber* deviceProber: deviceProbers)
+	{
+		imageEncoders.push_front(new ImageEncoder(deviceProber));
+	}
+
+	return imageEncoders;
+}
+
+void freeImageEncoders(std::list<ImageEncoder*> imageEncoders)
+{
+	for(ImageEncoder* imageEncoder : imageEncoders)
+	{
+		assert(imageEncoder->Release() == 0);
 	}
 }
 

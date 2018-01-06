@@ -47,6 +47,8 @@ add_executable(decklink-debugger
 	CaptureDelegate.cpp
 	DeviceProber.cpp
 	HttpServer.cpp
+	MutableVideoFrame.cpp
+	ImageEncoder.cpp
 	${DECKLINK_INCLUDE_DIR}/DeckLinkAPIDispatch.cpp
 	${COMPILED_RESOURCES}
 )

@@ -10,7 +10,9 @@
 CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_refCount(1),
 	m_deckLink(deckLink),
+	m_lastFrame(NULL),
 	m_hasSignal(false),
+	m_detectedMode(""),
 	m_activeConnection(0)
 {
 	m_deckLink->AddRef();
@@ -207,6 +209,12 @@ HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoF
 	{
 		m_hasSignal = true;
 
+		if(m_lastFrame) {
+			m_lastFrame->Release();
+		}
+
+		m_lastFrame = videoFrame;
+		m_lastFrame->AddRef();
 
 		// it sometimes happens, that the switch to another connection is ignored when, just at this time,
 		// a signal arrives. Make sure to always report the correct selected interface.
