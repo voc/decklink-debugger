@@ -12,3 +12,5 @@
 /debian/decklink-debugger/
 /debian/files
 /Makefile
+/build
+/rc.cpp

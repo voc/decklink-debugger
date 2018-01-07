@@ -1,6 +1,6 @@
 #include "rc.h"
 
-#include "rc.hex/style.css.hex"
+#include "@CMAKE_CURRENT_BINARY_DIR@/rc.hex/style.css.hex"
 
 std::map<std::string, rcfile> rcs = {
 	{

@@ -14,20 +14,28 @@ include_directories(SYSTEM ${DECKLINK_INCLUDE_DIR})
 
 # Compile resources to Header-Files
 set(RESOURCE_COMPILER xxd)
-file(GLOB_RECURSE RESOURCES_TO_COMPILE RELATIVE "${CMAKE_SOURCE_DIR}/rc/" "${CMAKE_SOURCE_DIR}/rc/*")
-file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/rc.hex")
+set(RESOURCE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rc")
+set(RESOURCE_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/rc.hex")
+
+file(GLOB_RECURSE RESOURCES_TO_COMPILE RELATIVE "${RESOURCE_SOURCE_DIR}/" "${RESOURCE_SOURCE_DIR}/*")
+file(MAKE_DIRECTORY "${RESOURCE_TARGET_DIR}")
+
 foreach(INPUT_FILE_NAME ${RESOURCES_TO_COMPILE})
-    set(INPUT_FILE  "${CMAKE_SOURCE_DIR}/rc/${INPUT_FILE_NAME}")
-    set(OUTPUT_FILE "${CMAKE_SOURCE_DIR}/rc.hex/${INPUT_FILE_NAME}.hex")
+    set(INPUT_FILE  "${RESOURCE_SOURCE_DIR}/${INPUT_FILE_NAME}")
+    set(OUTPUT_FILE "${RESOURCE_TARGET_DIR}/${INPUT_FILE_NAME}.hex")
 
     add_custom_command(
         OUTPUT ${OUTPUT_FILE}
         MAIN_DEPENDENCY ${INPUT_FILE}
-        WORKDIR ${CMAKE_SOURCE_DIR}
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         COMMAND ${RESOURCE_COMPILER} -i rc/${INPUT_FILE_NAME} ${OUTPUT_FILE}
-        COMMENT "Compiling ${INPUT_FILE_NAME} in ${CMAKE_SOURCE_DIR} to ${OUTPUT_FILE}")
+        COMMENT "Compiling rc/${INPUT_FILE_NAME} in ${CMAKE_CURRENT_SOURCE_DIR}/ to ${OUTPUT_FILE}")
+
     list(APPEND COMPILED_RESOURCES ${OUTPUT_FILE})
 endforeach()
+
+# Generate File referencing Resources
+configure_file(rc.cpp.in rc.cpp)
 
 # Include local Headers
 include_directories("${PROJECT_SOURCE_DIR}")
@@ -36,7 +44,6 @@ include_directories("${PROJECT_SOURCE_DIR}")
 add_executable(decklink-debugger
 	decklink-debugger.cpp
 	tostring.cpp
-	rc.cpp
 	CaptureDelegate.cpp
 	DeviceProber.cpp
 	HttpServer.cpp
@@ -44,6 +51,7 @@ add_executable(decklink-debugger
 	ImageEncoder.cpp
 	TablePrinter.cpp
 	DeckLinkAPIDispatch.cpp
+	${CMAKE_CURRENT_BINARY_DIR}/rc.cpp
 	${COMPILED_RESOURCES}
 )
 
