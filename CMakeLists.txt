@@ -60,4 +60,4 @@ add_executable(decklink-debugger
 # Specify Link-Libraries
 target_link_libraries(decklink-debugger dl pthread microhttpd png)
 
-install(PROGRAMS decklink-debugger DESTINATION bin)
+install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/decklink-debugger" DESTINATION bin)
