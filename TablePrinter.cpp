@@ -73,7 +73,12 @@ void TablePrinter::PrintHeader(){
     else
       *out_stream_ << std::right; 
 
-    *out_stream_ << std::setw(column_widths_.at(i)) << column_headers_.at(i).substr(0, column_widths_.at(i));
+    *out_stream_
+      << " "
+      << std::setw(column_widths_.at(i) - 2)
+      << column_headers_.at(i).substr(0, column_widths_.at(i) - 2)
+      << " ";
+
     if (i != get_num_columns()-1){
       *out_stream_ << separator_;
     }

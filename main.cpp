@@ -131,17 +131,17 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers)
 
 
 	bprinter::TablePrinter table(&std::cout);
-	table.AddColumn("#", 4);
-	table.AddColumn("Device Name", 25);
-	table.AddColumn("Signal Detected", 17);
-	table.AddColumn("Active Connection", 19);
-	table.AddColumn("Detected Mode", 15);
-	table.AddColumn("Pixel Format", 14);
+	table.AddColumn("#", 15);
+	table.AddColumn("Device Name", 27);
+	table.AddColumn("Signal Detected", 18);
+	table.AddColumn("Active Connection", 20);
+	table.AddColumn("Detected Mode", 16);
+	table.AddColumn("Pixel Format", 15);
 	table.set_flush_left();
 	table.PrintHeader();
 
 	table
-		<< 8
+		<< 1
 		<< "DeckLink Mini Recorder #1"
 		<< "Yes"
 		<< "OpticalSDI"

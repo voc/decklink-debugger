@@ -66,9 +66,14 @@ public:
     else
       *out_stream_ << std::right; 
 
+    std::stringstream string_out;
+    string_out << input;
+
     // Leave 3 extra space: One for negative sign, one for zero, one for decimal
-    *out_stream_ << std::setw(column_widths_.at(j_))
-                 << input;
+    *out_stream_ << " "
+                 << std::setw(column_widths_.at(j_) - 2)
+                 << string_out.str().substr(0, column_widths_.at(j_) - 2)
+                 << " ";
 
     if (j_ == get_num_columns()-1){
       *out_stream_ << "|\n";
