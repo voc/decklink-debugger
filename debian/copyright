@@ -3,8 +3,7 @@ Upstream-Name: decklink-debugger
 Source: <url://example.com>
 
 Files: *
-Copyright: <years> <put author's name and email here>
-           <years> <likewise for another author>
+Copyright: 2018 Peter Körner <peter@mazdermind.de>
 License: GPL-3.0+
 
 Files: debian/*

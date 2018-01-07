@@ -10,6 +10,8 @@ Homepage: <insert the upstream URL, if relevant>
 
 Package: decklink-debugger
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: ${shlibs:Depends}, ${misc:Depends} libmicrohttpd10 libpng12-0 desktopvideo
+Description: BlackMagic DeckLink Input-Debugger
+ A tool to probe all inputs of all BlackMagic DeckLink-Cards in a Linux-System,
+ detecting if a signal is present and which image-format it has, showing the
+ results on the terminal and via HTTP on port 8042, allow capturing still-images.
