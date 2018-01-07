@@ -40,6 +40,8 @@ configure_file(rc.cpp.in rc.cpp)
 # Include local Headers
 include_directories("${PROJECT_SOURCE_DIR}")
 
+include_directories(SYSTEM "/usr/lib/decklink-sdk/")
+
 # Build Binary
 add_executable(decklink-debugger
 	decklink-debugger.cpp

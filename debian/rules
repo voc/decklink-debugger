@@ -13,6 +13,7 @@
 # package maintainers to append LDFLAGS
 #export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
+export DEB_CFLAGS_MAINT_APPEND  = -I/usr/lib/decklink-sdk/
 
 %:
 	dh $@ 
@@ -22,4 +23,3 @@
 # This is example for Cmake (See https://bugs.debian.org/641051 )
 #override_dh_auto_configure:
 #	dh_auto_configure -- #	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)
-
