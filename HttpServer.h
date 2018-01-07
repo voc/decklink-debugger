@@ -47,11 +47,13 @@ private:
 	);
 
 private:
-	int32_t                  m_refCount;
+	int32_t                    m_refCount;
 	std::vector<DeviceProber*> m_deviceProbers;
 	std::vector<ImageEncoder*> m_imageEncoders;
 
-	MHD_Daemon*              m_daemon;
+	char                       m_hostname[BUFSIZ];
+
+	MHD_Daemon*                m_daemon;
 };
 
 #endif

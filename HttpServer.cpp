@@ -37,6 +37,8 @@ HttpServer::HttpServer(std::vector<DeviceProber*> deviceProbers) :
 		MHD_OPTION_END
 	);
 
+	gethostname(m_hostname, BUFSIZ);
+
 	if (m_daemon == NULL) {
 		std::cerr << "Error starting HTTP-Server, is Port "
 			<< HttpServer::PORT << " in use?" << std::endl;
@@ -45,7 +47,7 @@ HttpServer::HttpServer(std::vector<DeviceProber*> deviceProbers) :
 
 	std::cout
 		<< std::endl
-		<< "\tListening to http://127.0.0.1:" << HttpServer::PORT << std::endl
+		<< "\tListening to http://" << m_hostname << ":" << HttpServer::PORT << std::endl
 		<< "\tBrowse there for Pictures of the captured Material" << std::endl
 		<< std::endl;
 
@@ -149,9 +151,6 @@ int HttpServer::indexRequestHandler(
 ) {
 	(*responseHeaders)["Content-Type"] = "text/html";
 
-	char hostname[BUFSIZ];
-	gethostname(hostname, BUFSIZ);
-
 	(*responseBody) <<
 "<!DOCTYPE html>"
 "<html>"
@@ -160,7 +159,7 @@ int HttpServer::indexRequestHandler(
 "		<link rel=\"stylesheet\" type=\"text/css\" href=\"static/style.css\">"
 "	</head>"
 "	<body>"
-"		<h1>DecklinkDebugger on <u>" << hostname << "</u></h1>"
+"		<h1>DecklinkDebugger on <u>" << m_hostname << "</u></h1>"
 "		<table>"
 "			<thead>"
 "				<th>#</th>"
