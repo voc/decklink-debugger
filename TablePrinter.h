@@ -12,6 +12,8 @@
 
 namespace bprinter {
 class endl{};
+class greyon{};
+class greyoff{};
 /** \class TablePrinter
 
   Print a pretty table into your output of choice.
@@ -56,6 +58,8 @@ public:
   // Can we merge these?
   TablePrinter& operator<<(float input);
   TablePrinter& operator<<(double input);
+  TablePrinter& operator<<(UNUSED greyon input);
+  TablePrinter& operator<<(UNUSED greyoff input);
 
   template<typename T> TablePrinter& operator<<(T input){
     if (j_ == 0)

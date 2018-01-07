@@ -150,13 +150,19 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iter
 	int deviceIndex = 0;
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
+		if(!deviceProber->GetSignalDetected())
+		{
+			table << bprinter::greyon();
+		}
+
 		table
 			<< deviceIndex
 			<< deviceProber->GetDeviceName()
 			<< boolToString(deviceProber->GetSignalDetected())
 			<< videoConnectionToString(deviceProber->GetActiveConnection())
 			<< deviceProber->GetDetectedMode()
-			<< pixelFormatToString(deviceProber->GetPixelFormat());
+			<< pixelFormatToString(deviceProber->GetPixelFormat())
+			<< bprinter::greyoff();
 
 		deviceIndex++;
 	}

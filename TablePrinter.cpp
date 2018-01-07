@@ -102,4 +102,14 @@ TablePrinter& TablePrinter::operator<<(double input){
   return *this;
 }
 
+TablePrinter& TablePrinter::operator<<(UNUSED greyon input) {
+  *out_stream_ << "\033[1;30m";
+  return *this;
+}
+
+TablePrinter& TablePrinter::operator<<(UNUSED greyoff input) {
+  *out_stream_ << "\033[0m";
+  return *this;
+}
+
 }
