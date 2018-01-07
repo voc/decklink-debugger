@@ -6,3 +6,9 @@
 /cmake_install.cmake
 /.idea
 /rc.hex
+/debian/debhelper-build-stamp
+/debian/decklink-debugger.debhelper.log
+/debian/decklink-debugger.substvars
+/debian/decklink-debugger/
+/debian/files
+/Makefile
