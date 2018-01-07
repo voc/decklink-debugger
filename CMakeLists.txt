@@ -13,13 +13,6 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 # C++11
 set (CMAKE_CXX_STANDARD 11)
 
-# DeckLink SDK
-set(DECKLINK_INCLUDE_DIR "" CACHE FILEPATH "Path to DeckLink linux/include directory")
-
-if(NOT EXISTS ${DECKLINK_INCLUDE_DIR}/DeckLinkAPI.h)
-	message(SEND_ERROR "Can't find DeckLinkAPI.h in '${DECKLINK_INCLUDE_DIR}', set dir with 'cmake -D DECKLINK_INCLUDE_DIR=path/to/linux/include .'")
-endif()
-
 include_directories(SYSTEM ${DECKLINK_INCLUDE_DIR})
 
 # Compile resources to Header-Files
@@ -50,7 +43,7 @@ add_executable(decklink-debugger
 	MutableVideoFrame.cpp
 	ImageEncoder.cpp
 	TablePrinter.cpp
-	${DECKLINK_INCLUDE_DIR}/DeckLinkAPIDispatch.cpp
+	DeckLinkAPIDispatch.cpp
 	${COMPILED_RESOURCES}
 )
 
