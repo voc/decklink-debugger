@@ -49,6 +49,7 @@ add_executable(decklink-debugger
 	HttpServer.cpp
 	MutableVideoFrame.cpp
 	ImageEncoder.cpp
+	TablePrinter.cpp
 	${DECKLINK_INCLUDE_DIR}/DeckLinkAPIDispatch.cpp
 	${COMPILED_RESOURCES}
 )

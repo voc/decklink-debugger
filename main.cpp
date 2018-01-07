@@ -12,6 +12,7 @@
 #include "DeckLinkAPI.h"
 #include "DeviceProber.h"
 #include "HttpServer.h"
+#include "TablePrinter.h"
 
 static bool g_do_exit = false;
 
@@ -122,23 +123,44 @@ void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers)
 
 void printStatusList(std::vector<DeviceProber*> deviceProbers)
 {
-	int deviceIndex = 0;
+	if(deviceProbers.size() == 0)
+	{
+		//std::cout << "No DeckLink devices found" << std::endl;
+		//return;
+	}
 
+
+	bprinter::TablePrinter table(&std::cout);
+	table.AddColumn("#", 4);
+	table.AddColumn("Device Name", 25);
+	table.AddColumn("Signal Detected", 17);
+	table.AddColumn("Active Connection", 19);
+	table.AddColumn("Detected Mode", 15);
+	table.AddColumn("Pixel Format", 14);
+	table.set_flush_left();
+	table.PrintHeader();
+
+	table
+		<< 8
+		<< "DeckLink Mini Recorder #1"
+		<< "Yes"
+		<< "OpticalSDI"
+		<< "1080p59.59 YUV"
+		<< "10 Bit YUV";
+
+
+	int deviceIndex = 0;
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
-		std::cout
-			<< "#" << deviceIndex << ", " << deviceProber->GetDeviceName()
-			<< ", CanAutodetect: "        << boolToString(deviceProber->CanAutodetect())
-			<< ", GetSignalDetected: "    << boolToString(deviceProber->GetSignalDetected())
-			<< ", ActiveConnection: "     << videoConnectionToString(deviceProber->GetActiveConnection())
-			<< ", DetectedMode: "         << deviceProber->GetDetectedMode()
-			<< ", PixelFormat: "          << pixelFormatToString(deviceProber->GetPixelFormat())
-			<< std::endl;
+		table
+			<< deviceIndex
+			<< deviceProber->GetDeviceName()
+			<< boolToString(deviceProber->GetSignalDetected())
+			<< videoConnectionToString(deviceProber->GetActiveConnection())
+			<< deviceProber->GetDetectedMode()
+			<< pixelFormatToString(deviceProber->GetPixelFormat());
 
 		deviceIndex++;
 	}
-
-	if (deviceIndex == 0) {
-				std::cerr << "No DeckLink devices found" << std::endl;
-	}
+	table.PrintFooter();
 }

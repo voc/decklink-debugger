@@ -258,6 +258,33 @@ MutableVideoFrame.cpp.s:
 	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/MutableVideoFrame.cpp.s
 .PHONY : MutableVideoFrame.cpp.s
 
+TablePrinter.o: TablePrinter.cpp.o
+
+.PHONY : TablePrinter.o
+
+# target to build an object file
+TablePrinter.cpp.o:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/TablePrinter.cpp.o
+.PHONY : TablePrinter.cpp.o
+
+TablePrinter.i: TablePrinter.cpp.i
+
+.PHONY : TablePrinter.i
+
+# target to preprocess a source file
+TablePrinter.cpp.i:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/TablePrinter.cpp.i
+.PHONY : TablePrinter.cpp.i
+
+TablePrinter.s: TablePrinter.cpp.s
+
+.PHONY : TablePrinter.s
+
+# target to generate assembly for a file
+TablePrinter.cpp.s:
+	$(MAKE) -f CMakeFiles/decklink-debugger.dir/build.make CMakeFiles/decklink-debugger.dir/TablePrinter.cpp.s
+.PHONY : TablePrinter.cpp.s
+
 home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o: home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.cpp.o
 
 .PHONY : home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o
@@ -390,6 +417,9 @@ help:
 	@echo "... MutableVideoFrame.o"
 	@echo "... MutableVideoFrame.i"
 	@echo "... MutableVideoFrame.s"
+	@echo "... TablePrinter.o"
+	@echo "... TablePrinter.i"
+	@echo "... TablePrinter.s"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.o"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.i"
 	@echo "... home/peter/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/DeckLinkAPIDispatch.s"
