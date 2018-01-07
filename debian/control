@@ -9,6 +9,7 @@ Homepage: https://github.com/voc/decklink-debugger
 Package: decklink-debugger
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libmicrohttpd12, libpng16-16, desktopvideo
+Build-Depends: libmicrohttpd12-dev, libpng-dev, decklink-sdk
 Description: BlackMagic DeckLink Input-Debugger
  A tool to probe all inputs of all BlackMagic DeckLink-Cards in a Linux-System,
  detecting if a signal is present and which image-format it has, showing the
