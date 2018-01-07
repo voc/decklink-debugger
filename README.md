@@ -1,7 +1,7 @@
 # BlackMagic DeckLink Input-Debugger
 **tl;dr** A tool to **probe all inputs** of all **BlackMagic DeckLink-Cards** in a Linux-System, detecting if a **signal is present** and which **image-format** it has, showing the results **on the terminal and via HTTP on port 8042**, allow **capturing still-images**.
 
-**Image here**
+![Screenhot of the running tool, showing its terminal-output as well as the Web-GUI](screenshot.png)
 
 ## Motivation
 At c3voc we use Linux-PCs with BlackMagic DeckLink-Cards to mix and capture video and audio. Often, during buildup of complex rooms like we have on 34C3 with multiple cameras, scalers, audio-embedders and lots of other hardware in the signal-path the question arrives if all is correctly connected up and delivers the correct signal-format.
