@@ -22,7 +22,7 @@ void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices);
 std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkDevices);
 void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers);
 
-void printStatusList(std::vector<DeviceProber*> deviceProbers);
+void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iteration);
 char* getDeviceName(IDeckLink* deckLink);
 
 static void sigfunc(int signum);
@@ -30,6 +30,13 @@ static void sigfunc(int signum);
 int main (UNUSED int argc, UNUSED char** argv)
 {
 	std::vector<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
+
+	if(deckLinkDevices.size() == 0)
+	{
+		std::cout << "No DeckLink devices found" << std::endl;
+		exit(2);
+	}
+
 	std::vector<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
 
 	HttpServer* httpServer = new HttpServer(deviceProbers);
@@ -38,8 +45,9 @@ int main (UNUSED int argc, UNUSED char** argv)
 	signal(SIGTERM, sigfunc);
 	signal(SIGHUP, sigfunc);
 
+	unsigned int iteration = 0;
 	while(!g_do_exit) {
-		printStatusList(deviceProbers);
+		printStatusList(deviceProbers, iteration++);
 
 		for(DeviceProber* deviceProber: deviceProbers) {
 			if(!deviceProber->GetSignalDetected()) {
@@ -121,14 +129,13 @@ void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers)
 	}
 }
 
-void printStatusList(std::vector<DeviceProber*> deviceProbers)
+void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iteration)
 {
-	if(deviceProbers.size() == 0)
+	if(iteration > 0)
 	{
-		//std::cout << "No DeckLink devices found" << std::endl;
-		//return;
+		int nLines = deviceProbers.size() * 2 + 3 + 2;
+		std::cout << "\033[" << nLines << "A";
 	}
-
 
 	bprinter::TablePrinter table(&std::cout);
 	table.AddColumn("#", 15);
@@ -139,15 +146,6 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers)
 	table.AddColumn("Pixel Format", 15);
 	table.set_flush_left();
 	table.PrintHeader();
-
-	table
-		<< 1
-		<< "DeckLink Mini Recorder #1"
-		<< "Yes"
-		<< "OpticalSDI"
-		<< "1080p59.59 YUV"
-		<< "10 Bit YUV";
-
 
 	int deviceIndex = 0;
 	for(DeviceProber* deviceProber : deviceProbers)
@@ -163,4 +161,7 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers)
 		deviceIndex++;
 	}
 	table.PrintFooter();
+
+	const char iterationSign[4] = { '|', '\\', '-', '/' };
+	std::cout << std::endl << "     Scanning... " << iterationSign[iteration % 4] << std::endl;
 }
