@@ -1,0 +1,6 @@
+BlackMagic DeckLink Input-Debugger
+----------------------------
+
+A tool to probe all inputs of all BlackMagic DeckLink-Cards in a Linux-System, detecting if a signal is present and which image-format it has, showing the results on the terminal and via HTTP on port 8042, allow capturing still-images.
+
+ -- Peter Körner <peter@mazdermind.de>  Sun, 07 Jan 2018 18:57:03 +0100

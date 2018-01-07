@@ -1,0 +1,16 @@
+Source: decklink-debugger
+Section: video
+Priority: optional
+Maintainer: Peter Körner <peter@mazdermind.de>
+Build-Depends: debhelper (>=9)
+Standards-Version: 3.9.7
+Homepage: https://github.com/voc/decklink-debugger
+
+Package: decklink-debugger
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmicrohttpd12, libpng16-16, desktopvideo
+Description: BlackMagic DeckLink Input-Debugger
+ A tool to probe all inputs of all BlackMagic DeckLink-Cards in a Linux-System,
+ detecting if a signal is present and which image-format it has, showing the
+ results on the terminal and via HTTP on port 8042, allow capturing
+ still-images.

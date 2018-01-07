@@ -25,7 +25,7 @@ include_directories(SYSTEM ${DECKLINK_INCLUDE_DIR})
 # Compile resources to Header-Files
 set(RESOURCE_COMPILER xxd)
 file(GLOB_RECURSE RESOURCES_TO_COMPILE RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/rc" "${CMAKE_CURRENT_SOURCE_DIR}/rc/*")
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/rc.hex")
+file(MAKE_DIRECTORY "rc.hex")
 foreach(INPUT_FILE_NAME ${RESOURCES_TO_COMPILE})
     set(INPUT_FILE  "rc/${INPUT_FILE_NAME}")
     set(OUTPUT_FILE "rc.hex/${INPUT_FILE_NAME}.hex")
@@ -41,7 +41,7 @@ include_directories("${PROJECT_SOURCE_DIR}")
 
 # Build Binary
 add_executable(decklink-debugger
-	main.cpp
+	decklink-debugger.cpp
 	tostring.cpp
 	rc.cpp
 	CaptureDelegate.cpp
@@ -56,3 +56,5 @@ add_executable(decklink-debugger
 
 # Specify Link-Libraries
 target_link_libraries(decklink-debugger dl pthread microhttpd png)
+
+install(PROGRAMS decklink-debugger DESTINATION bin)
