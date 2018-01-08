@@ -27,10 +27,14 @@ public:
 	virtual IDeckLinkVideoInputFrame* GetLastFrame(void)  { return m_lastFrame; }
 
 private:
-	IDeckLinkDisplayMode* queryFirstDisplayMode(void);
-	IDeckLinkInput*       queryInputInterface(void);
-	int64_t               queryInputConnections(void);
-	BMDVideoConnection    querySelectedConnection(void);
+	IDeckLinkDisplayMode*   queryFirstDisplayMode(void);
+	IDeckLinkInput*         queryInputInterface(void);
+	IDeckLinkConfiguration* queryConfigurationInterface(void);
+	IDeckLinkAttributes*    queryAttributesInterface(void);
+	int64_t                 queryInputConnections(void);
+	BMDVideoConnection      querySelectedConnection(void);
+
+	void setDuplexToHalfDuplexModeIfSupported(void);
 
 private:
 	static const BMDPixelFormat     PIXEL_FORMAT = bmdFormat10BitYUV;
@@ -41,6 +45,9 @@ private:
 	static const int                AUDIO_CHANNELS = 16;
 
 private:
+	IDeckLinkAttributes*      m_deckLinkAttributes = NULL;
+	IDeckLinkConfiguration*   m_deckLinkConfiguration = NULL;
+
 	int32_t                   m_refCount;
 	int64_t                   m_decklinkConnections;
 	IDeckLink*                m_deckLink;
@@ -51,6 +58,7 @@ private:
 	std::string        m_detectedMode;
 	BMDPixelFormat     m_pixelFormat;
 	BMDVideoConnection m_activeConnection;
+	bool               m_isPairedDevice;
 };
 
 #endif

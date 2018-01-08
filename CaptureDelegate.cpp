@@ -19,7 +19,11 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_deckLink->AddRef();
 
 	m_deckLinkInput = queryInputInterface();
+	m_deckLinkConfiguration = queryConfigurationInterface();
+	m_deckLinkAttributes = queryAttributesInterface();
 	m_decklinkConnections = queryInputConnections();
+
+	setDuplexToHalfDuplexModeIfSupported();
 }
 
 IDeckLinkInput* CaptureDelegate::queryInputInterface(void)
@@ -37,30 +41,66 @@ IDeckLinkInput* CaptureDelegate::queryInputInterface(void)
 	return deckLinkInput;
 }
 
-int64_t CaptureDelegate::queryInputConnections(void)
+IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface(void)
+{
+	HRESULT result;
+	IDeckLinkConfiguration* deckLinkConfiguration = NULL;
+
+	result = m_deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&deckLinkConfiguration);
+	if (result != S_OK) {
+		std::cerr << "Could not obtain the IID_IDeckLinkConfiguration interface" << std::endl;
+		exit(1);
+	}
+
+	return deckLinkConfiguration;
+}
+
+IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface(void)
 {
 	HRESULT result;
 	IDeckLinkAttributes* deckLinkAttributes = NULL;
 
-	int64_t connections;
-
-	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void**)&deckLinkAttributes);
-	if (result != S_OK)
-	{
-		std::cerr << "Could not obtain the IDeckLinkAttributes interface" << std::endl;
+	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	if (result != S_OK) {
+		std::cerr << "Could not obtain the IID_IDeckLinkAttributes interface" << std::endl;
 		exit(1);
 	}
 
-	result = deckLinkAttributes->GetInt(BMDDeckLinkVideoInputConnections, &connections);
+	return deckLinkAttributes;
+}
+
+int64_t CaptureDelegate::queryInputConnections(void)
+{
+	HRESULT result;
+	int64_t connections;
+
+	result = m_deckLinkAttributes->GetInt(BMDDeckLinkVideoInputConnections, &connections);
 	if (result != S_OK)
 	{
 		std::cerr << "Could not obtain the list of input connections" << std::endl;
 		exit(1);
 	}
 
-	assert(deckLinkAttributes->Release() == 0);
-
 	return connections;
+}
+
+void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported(void)
+{
+	HRESULT result;
+	bool duplex_supported = false;
+
+	result = m_deckLinkAttributes->GetFlag(BMDDeckLinkSupportsDuplexModeConfiguration, &duplex_supported);
+	if (result == S_OK) {
+		duplex_supported = false;
+	}
+
+	if (duplex_supported) {
+		result = m_deckLinkConfiguration->SetInt(bmdDeckLinkConfigDuplexMode, bmdDuplexModeHalf);
+		if (result != S_OK) {
+			std::cerr << "Setting duplex mode failed" << std::endl;
+			exit(1);
+		}
+	}
 }
 
 void CaptureDelegate::Start(void)
@@ -167,35 +207,14 @@ void CaptureDelegate::SelectNextConnection(void)
 		}
 	}
 
-	HRESULT result;
-	IDeckLinkConfiguration* deckLinkConfiguration = NULL;
-
-	result = m_deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void**)&deckLinkConfiguration);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to Query Attributes-Interface" << std::endl;
-		exit(1);
-	}
-
-	deckLinkConfiguration->SetInt(bmdDeckLinkConfigVideoInputConnection, m_activeConnection);
-	assert(deckLinkConfiguration->Release() == 0);
+	m_deckLinkConfiguration->SetInt(bmdDeckLinkConfigVideoInputConnection, m_activeConnection);
 }
 
 BMDVideoConnection CaptureDelegate::querySelectedConnection(void)
 {
-	HRESULT result;
-	IDeckLinkConfiguration* deckLinkConfiguration = NULL;
 	int64_t activeConnection;
 
-	result = m_deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void**)&deckLinkConfiguration);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to Query Attributes-Interface" << std::endl;
-		exit(1);
-	}
-
-	deckLinkConfiguration->GetInt(bmdDeckLinkConfigVideoInputConnection, &activeConnection);
-	assert(deckLinkConfiguration->Release() == 0);
+	m_deckLinkConfiguration->GetInt(bmdDeckLinkConfigVideoInputConnection, &activeConnection);
 
 	return activeConnection;
 }
@@ -269,6 +288,8 @@ ULONG CaptureDelegate::Release(void)
 	{
 		m_deckLinkInput->Release();
 
+		assert(m_deckLinkConfiguration->Release() == 0);
+		assert(m_deckLinkAttributes->Release() == 0);
 		m_deckLink->Release();
 
 		delete this;
