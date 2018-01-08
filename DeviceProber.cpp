@@ -8,13 +8,28 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deck
 {
 	m_deckLink->AddRef();
 
+	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
 
-	if (m_canAutodetect)
+	if (m_canAutodetect && m_canInput)
 	{
 		m_captureDelegate = new CaptureDelegate(m_deckLink);
 		m_captureDelegate->Start();
 	}
+}
+
+bool DeviceProber::queryCanInput(void)
+{
+	HRESULT result;
+	IDeckLinkInput* deckLinkInput = NULL;
+	bool canInput;
+
+	result = m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
+	canInput = (result == S_OK);
+
+	deckLinkInput->Release();
+
+	return canInput;
 }
 
 bool DeviceProber::queryCanAutodetect(void)

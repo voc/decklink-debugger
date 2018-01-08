@@ -18,6 +18,7 @@ public:
 
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect() { return m_canAutodetect; }
+	virtual bool        CanInput()      { return m_canInput; }
 
 	virtual IDeckLink*         GetIDecklink(void) { return m_deckLink; }
 	virtual bool               GetSignalDetected(void);
@@ -31,6 +32,7 @@ public:
 
 private:
 	bool queryCanAutodetect(void);
+	bool queryCanInput(void);
 
 private:
 	int32_t             m_refCount;
@@ -38,6 +40,7 @@ private:
 	CaptureDelegate*    m_captureDelegate;
 
 	bool                m_canAutodetect;
+	bool                m_canInput;
 };
 
 #endif
