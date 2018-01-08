@@ -139,7 +139,7 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iter
 
 	bprinter::TablePrinter table(&std::cout);
 	table.AddColumn("#", 15);
-	table.AddColumn("Device Name", 27);
+	table.AddColumn("Device Name", 31);
 	table.AddColumn("Can Input & Detect", 20);
 	table.AddColumn("Signal Detected", 17);
 	table.AddColumn("Active Connection", 19);
@@ -156,9 +156,15 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iter
 			table << bprinter::greyon();
 		}
 
+		std::string deviceName = deviceProber->GetDeviceName();
+		if(deviceProber->IsPairedDevice())
+		{
+			deviceName = "\\-> " + deviceName;
+		}
+
 		table
 			<< deviceIndex
-			<< deviceProber->GetDeviceName()
+			<< deviceName
 			<< boolToString(deviceProber->CanAutodetect() && deviceProber->CanInput())
 			<< boolToString(deviceProber->GetSignalDetected())
 			<< videoConnectionToString(deviceProber->GetActiveConnection())

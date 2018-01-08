@@ -288,8 +288,8 @@ ULONG CaptureDelegate::Release(void)
 	{
 		m_deckLinkInput->Release();
 
-		assert(m_deckLinkConfiguration->Release() == 0);
-		assert(m_deckLinkAttributes->Release() == 0);
+		m_deckLinkConfiguration->Release();
+		m_deckLinkAttributes->Release();
 		m_deckLink->Release();
 
 		delete this;

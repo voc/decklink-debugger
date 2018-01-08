@@ -17,8 +17,9 @@ public:
 	virtual ULONG Release(void);
 
 	virtual std::string GetDeviceName();
-	virtual bool        CanAutodetect() { return m_canAutodetect; }
-	virtual bool        CanInput()      { return m_canInput; }
+	virtual bool        CanAutodetect()  { return m_canAutodetect; }
+	virtual bool        CanInput()       { return m_canInput; }
+	virtual bool        IsPairedDevice() { return m_isPairedDevice; }
 
 	virtual IDeckLink*         GetIDecklink(void) { return m_deckLink; }
 	virtual bool               GetSignalDetected(void);
@@ -31,16 +32,20 @@ public:
 	virtual IDeckLinkVideoInputFrame* GetLastFrame(void);
 
 private:
-	bool queryCanAutodetect(void);
-	bool queryCanInput(void);
+	bool                 queryCanAutodetect(void);
+	bool                 queryCanInput(void);
+	bool                 queryIsPairedDevice(void);
+	IDeckLinkAttributes* queryAttributesInterface(void);
 
 private:
-	int32_t             m_refCount;
-	IDeckLink*          m_deckLink;
-	CaptureDelegate*    m_captureDelegate;
+	int32_t              m_refCount;
+	IDeckLink*           m_deckLink;
+	CaptureDelegate*     m_captureDelegate;
+	IDeckLinkAttributes* m_deckLinkAttributes;
 
-	bool                m_canAutodetect;
-	bool                m_canInput;
+	bool                 m_canAutodetect;
+	bool                 m_canInput;
+	bool                 m_isPairedDevice;
 };
 
 #endif

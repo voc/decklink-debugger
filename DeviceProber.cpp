@@ -7,15 +7,31 @@
 DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deckLink)
 {
 	m_deckLink->AddRef();
+	m_deckLinkAttributes = queryAttributesInterface();
 
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
+	m_isPairedDevice = queryIsPairedDevice();
 
 	if (m_canAutodetect && m_canInput)
 	{
 		m_captureDelegate = new CaptureDelegate(m_deckLink);
 		m_captureDelegate->Start();
 	}
+}
+
+IDeckLinkAttributes* DeviceProber::queryAttributesInterface(void)
+{
+	HRESULT result;
+	IDeckLinkAttributes* deckLinkAttributes = NULL;
+
+	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	if (result != S_OK) {
+		std::cerr << "Could not obtain the IID_IDeckLinkAttributes interface" << std::endl;
+		exit(1);
+	}
+
+	return deckLinkAttributes;
 }
 
 bool DeviceProber::queryCanInput(void)
@@ -32,29 +48,26 @@ bool DeviceProber::queryCanInput(void)
 	return canInput;
 }
 
+bool DeviceProber::queryIsPairedDevice(void)
+{
+	HRESULT result;
+	int64_t paired_device_id;
+
+	result = m_deckLinkAttributes->GetInt(BMDDeckLinkPairedDevicePersistentID, &paired_device_id);
+	return (result == S_OK);
+}
+
 bool DeviceProber::queryCanAutodetect(void)
 {
 	HRESULT result;
 	bool formatDetectionSupported;
 
-	IDeckLinkAttributes* deckLinkAttributes = NULL;
-
-	// Check the card supports format detection
-	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void**)&deckLinkAttributes);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to Query Attributes-Interface" << std::endl;
-		exit(1);
-	}
-
-	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
+	result = m_deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
 	if (result != S_OK)
 	{
 		std::cerr << "Failed to Query Auto-Detection-Flag" << std::endl;
 		exit(1);
 	}
-
-	deckLinkAttributes->Release();
 
 	return formatDetectionSupported;
 }
@@ -132,6 +145,7 @@ ULONG DeviceProber::Release(void)
 	if (newRefValue == 0)
 	{
 		m_deckLink->Release();
+		m_deckLinkAttributes->Release();
 
 		if(m_captureDelegate != NULL) {
 			m_captureDelegate->Stop();
