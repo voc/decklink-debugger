@@ -32,4 +32,4 @@ To check the status of all DeckLink Inputs just start `decklink-debugger` on the
 In addition to the table printed to the terminal, a webserver on port 8042 will be started which also servers a table, refreshing every second. Furthermore in the Web-UI a png-capture of the current frame can be viewed.
 
 ## Contact us
-Hop over to `#34c3-lounge` on `hackint.eu` (IRC) or drop us a line [on twitter](https://twitter.com/c3voc).
+Hop over to `#voc-lounge` on `hackint.eu` (IRC) or drop us a line [on twitter](https://twitter.com/c3voc).
