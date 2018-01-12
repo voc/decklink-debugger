@@ -18,7 +18,6 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deck
 
 	if (m_canAutodetect && m_canInput)
 	{
-		std::cerr << GetDeviceName() << std::endl;
 		m_captureDelegate = new CaptureDelegate(m_deckLink);
 		m_captureDelegate->Start();
 	}
