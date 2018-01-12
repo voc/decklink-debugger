@@ -141,7 +141,7 @@ IDeckLink* CaptureDelegate::queryDeckLinkInterfaceByPersistentId(int64_t pairedD
 		}
 
 		int64_t persistent_id;
-		if (attr->GetInt(BMDDeckLinkPersistentID, &persistent_id) == S_OK) {
+		if (attr->GetInt(BMDDeckLinkPersistentID, &persistent_id) != S_OK) {
 			attr->Release();
 			iter->Release();
 			return NULL;
@@ -173,7 +173,7 @@ void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported(void)
 		// failed. trying paired device
 
 		IDeckLink *pairedDecklink = queryDeckLinkInterfaceByPersistentId(m_pairedDeviceId);
-		if(!pairedDecklink)
+		if(pairedDecklink == NULL)
 		{
 			// no paired device, nothing left to do.
 			return;
