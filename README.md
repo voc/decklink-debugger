@@ -19,7 +19,7 @@ Prerequisites:
 
 ```
 sudo dpkg -i $HOME/VOC/Blackmagic_Desktop_Video_Linux_10.9.9/deb/x86_64/desktopvideo_10.9.9a4_amd64.deb
-sudo apt-get install libmicrohttpd-dev  libpng12-dev cmake build-essentia
+sudo apt-get install libmicrohttpd-dev libpng-dev cmake build-essential
 git clone http://c3voc.de/git/decklink-debugger.git
 cd decklink-debugger
 cmake .
