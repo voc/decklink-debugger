@@ -105,7 +105,7 @@ void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices)
 {
 	for(IDeckLink* deckLink: deckLinkDevices)
 	{
-		assert(deckLink->Release() == 0);
+		deckLink->Release();
 	}
 }
 
