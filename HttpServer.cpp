@@ -177,10 +177,17 @@ int HttpServer::indexRequestHandler(
 
 	for(DeviceProber* deviceProber : m_deviceProbers)
 	{
+
+		std::string deviceName = deviceProber->GetDeviceName();
+		if(deviceProber->IsPairedDevice())
+		{
+			deviceName = "↳ " + deviceName;
+		}
+
 		(*responseBody) <<
 "				<tr class=\"" << (deviceProber->GetSignalDetected() ? "signal" : "no-signal") << "\">"
 "					<td>" << deviceIndex << "</td>"
-"					<td>" << deviceProber->GetDeviceName() << "</td>"
+"					<td>" << deviceName << "</td>"
 "					<td>" << boolToString(deviceProber->CanAutodetect() && deviceProber->CanInput()) << "</td>"
 "					<td>" << boolToString(deviceProber->GetSignalDetected()) << "</td>"
 "					<td>" << videoConnectionToString(deviceProber->GetActiveConnection()) << "</td>"

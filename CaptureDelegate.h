@@ -19,6 +19,7 @@ public:
 	virtual void Stop(void);
 
 	virtual bool               GetSignalDetected(void)    { return m_hasSignal; }
+	virtual bool               IsPairedDevice(void)       { return m_isPairedDevice; }
 	virtual std::string        GetDetectedMode(void)      { return m_detectedMode; }
 	virtual BMDPixelFormat     GetPixelFormat(void)       { return m_pixelFormat; }
 	virtual BMDVideoConnection GetActiveConnection(void)  { return m_activeConnection; }
@@ -27,10 +28,20 @@ public:
 	virtual IDeckLinkVideoInputFrame* GetLastFrame(void)  { return m_lastFrame; }
 
 private:
-	IDeckLinkDisplayMode* queryFirstDisplayMode(void);
-	IDeckLinkInput*       queryInputInterface(void);
-	int64_t               queryInputConnections(void);
-	BMDVideoConnection    querySelectedConnection(void);
+	IDeckLinkDisplayMode*   queryFirstDisplayMode(void);
+	IDeckLinkInput*         queryInputInterface(void);
+	IDeckLinkConfiguration* queryConfigurationInterface(IDeckLink* deckLink);
+	IDeckLinkConfiguration* queryConfigurationInterface(void);
+	IDeckLinkAttributes*    queryAttributesInterface(IDeckLink* deckLink);
+	IDeckLinkAttributes*    queryAttributesInterface(void);
+	int64_t                 queryInputConnections(void);
+	BMDVideoConnection      querySelectedConnection(void);
+
+	IDeckLink*              queryDeckLinkInterfaceByPersistentId(int64_t pairedDeviceId);
+	int64_t                 getPairedDeviceId(void);
+
+	void setDuplexToHalfDuplexModeIfSupported(void);
+	void setDuplexToHalfDuplexModeIfSupported(IDeckLinkAttributes* m_deckLinkAttributes, IDeckLinkConfiguration* m_deckLinkConfiguration);
 
 private:
 	static const BMDPixelFormat     PIXEL_FORMAT = bmdFormat10BitYUV;
@@ -41,6 +52,9 @@ private:
 	static const int                AUDIO_CHANNELS = 16;
 
 private:
+	IDeckLinkAttributes*      m_deckLinkAttributes = NULL;
+	IDeckLinkConfiguration*   m_deckLinkConfiguration = NULL;
+
 	int32_t                   m_refCount;
 	int64_t                   m_decklinkConnections;
 	IDeckLink*                m_deckLink;
@@ -51,6 +65,9 @@ private:
 	std::string        m_detectedMode;
 	BMDPixelFormat     m_pixelFormat;
 	BMDVideoConnection m_activeConnection;
+
+	bool               m_isPairedDevice;
+	int64_t            m_pairedDeviceId;
 };
 
 #endif
