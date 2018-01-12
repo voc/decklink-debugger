@@ -133,7 +133,7 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iter
 {
 	if(iteration > 0)
 	{
-		int nLines = deviceProbers.size() * 2 + 3 + 2;
+		int nLines = deviceProbers.size() + 6;
 		std::cout << "\033[" << nLines << "A";
 	}
 
