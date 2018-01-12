@@ -19,10 +19,10 @@ public:
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect()  { return m_canAutodetect; }
 	virtual bool        CanInput()       { return m_canInput; }
-	virtual bool        IsPairedDevice() { return m_isPairedDevice; }
 
 	virtual IDeckLink*         GetIDecklink(void) { return m_deckLink; }
 	virtual bool               GetSignalDetected(void);
+	virtual bool               IsPairedDevice();
 	virtual std::string        GetDetectedMode(void);
 	virtual BMDPixelFormat     GetPixelFormat(void);
 	virtual BMDVideoConnection GetActiveConnection(void);
@@ -34,7 +34,6 @@ public:
 private:
 	bool                 queryCanAutodetect(void);
 	bool                 queryCanInput(void);
-	bool                 queryIsPairedDevice(void);
 	IDeckLinkAttributes* queryAttributesInterface(void);
 
 private:
@@ -45,7 +44,6 @@ private:
 
 	bool                 m_canAutodetect;
 	bool                 m_canInput;
-	bool                 m_isPairedDevice;
 };
 
 #endif

@@ -1,3 +1,7 @@
+/**
+ * CaptureDelegate represents the Interface to the DeckLinkAPI
+ */
+
 #include <assert.h>
 
 #include <array>
@@ -23,6 +27,16 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_deckLinkAttributes = queryAttributesInterface();
 	m_decklinkConnections = queryInputConnections();
 
+	try {
+		m_pairedDeviceId = getPairedDeviceId();
+		m_isPairedDevice = true;
+	}
+	catch(const char* error)
+	{
+		m_pairedDeviceId = 0;
+		m_isPairedDevice = false;
+	}
+
 	setDuplexToHalfDuplexModeIfSupported();
 }
 
@@ -41,12 +55,31 @@ IDeckLinkInput* CaptureDelegate::queryInputInterface(void)
 	return deckLinkInput;
 }
 
+int64_t CaptureDelegate::getPairedDeviceId(void)
+{
+	HRESULT result;
+	int64_t paired_device_id;
+
+	result = m_deckLinkAttributes->GetInt(BMDDeckLinkPairedDevicePersistentID, &paired_device_id);
+	if (result != S_OK)
+	{
+		throw "Can't query paired Device-ID";
+	}
+
+	return paired_device_id;
+}
+
 IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface(void)
+{
+	return queryConfigurationInterface(m_deckLink);
+}
+
+IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface(IDeckLink* deckLink)
 {
 	HRESULT result;
 	IDeckLinkConfiguration* deckLinkConfiguration = NULL;
 
-	result = m_deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&deckLinkConfiguration);
+	result = deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&deckLinkConfiguration);
 	if (result != S_OK) {
 		std::cerr << "Could not obtain the IID_IDeckLinkConfiguration interface" << std::endl;
 		exit(1);
@@ -57,10 +90,15 @@ IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface(void)
 
 IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface(void)
 {
+	return queryAttributesInterface(m_deckLink);
+}
+
+IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface(IDeckLink* deckLink)
+{
 	HRESULT result;
 	IDeckLinkAttributes* deckLinkAttributes = NULL;
 
-	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
 	if (result != S_OK) {
 		std::cerr << "Could not obtain the IID_IDeckLinkAttributes interface" << std::endl;
 		exit(1);
@@ -84,22 +122,102 @@ int64_t CaptureDelegate::queryInputConnections(void)
 	return connections;
 }
 
+IDeckLink* CaptureDelegate::queryDeckLinkInterfaceByPersistentId(int64_t pairedDeviceId)
+{
+	IDeckLinkIterator *iter = CreateDeckLinkIteratorInstance();
+
+	if (!iter) {
+		std::cerr << "A DeckLink iterator could not be created." << std::endl;
+		exit(1);
+	}
+
+	IDeckLinkAttributes *attr = NULL;
+	IDeckLink *deckLink = NULL;
+
+	while (iter->Next(&deckLink) == S_OK) {
+		if (deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&attr) != S_OK) {
+			iter->Release();
+			return NULL;
+		}
+
+		int64_t persistent_id;
+		if (attr->GetInt(BMDDeckLinkPersistentID, &persistent_id) == S_OK) {
+			attr->Release();
+			iter->Release();
+			return NULL;
+		}
+
+		if(pairedDeviceId == persistent_id)
+		{
+			attr->Release();
+			iter->Release();
+			return deckLink;
+		}
+
+		attr->Release();
+	}
+	iter->Release();
+	return NULL;
+}
+
 void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported(void)
+{
+	try {
+		// try setDuplexToHalfDuplexModeIfSupported on this device
+		setDuplexToHalfDuplexModeIfSupported(m_deckLinkAttributes, m_deckLinkConfiguration);
+		// succes
+	}
+	catch(const char* error)
+	{
+		// failed. trying paired device
+
+		IDeckLink *pairedDecklink = queryDeckLinkInterfaceByPersistentId(m_pairedDeviceId);
+		if(!pairedDecklink)
+		{
+			// no paired device, nothing left to do.
+			return;
+		}
+
+		IDeckLinkAttributes* deckLinkAttributes = queryAttributesInterface(pairedDecklink);
+		IDeckLinkConfiguration* deckLinkConfiguration = queryConfigurationInterface(pairedDecklink);
+
+		try {
+			// try setDuplexToHalfDuplexModeIfSupported on paired device
+			setDuplexToHalfDuplexModeIfSupported(deckLinkAttributes, deckLinkConfiguration);
+			// success
+		}
+		catch(const char* error)
+		{
+			// failed, nothing left to do
+		}
+
+		deckLinkConfiguration->Release();
+		deckLinkAttributes->Release();
+		pairedDecklink->Release();
+	}
+
+	// all done
+}
+
+void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported(IDeckLinkAttributes* deckLinkAttributes, IDeckLinkConfiguration* deckLinkConfiguration)
 {
 	HRESULT result;
 	bool duplex_supported = false;
 
-	result = m_deckLinkAttributes->GetFlag(BMDDeckLinkSupportsDuplexModeConfiguration, &duplex_supported);
-	if (result == S_OK) {
-		duplex_supported = false;
+	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsDuplexModeConfiguration, &duplex_supported);
+	if (result != S_OK)
+	{
+		throw "Setting duplex mode failed";
 	}
 
-	if (duplex_supported) {
-		result = m_deckLinkConfiguration->SetInt(bmdDeckLinkConfigDuplexMode, bmdDuplexModeHalf);
-		if (result != S_OK) {
-			std::cerr << "Setting duplex mode failed" << std::endl;
-			exit(1);
-		}
+	if(!duplex_supported)
+	{
+		throw "Setting duplex mode failed";
+	}
+
+	result = deckLinkConfiguration->SetInt(bmdDeckLinkConfigDuplexMode, bmdDuplexModeHalf);
+	if (result != S_OK) {
+		throw "Setting duplex mode failed";
 	}
 }
 
