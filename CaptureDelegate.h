@@ -19,7 +19,7 @@ public:
 	virtual void Stop(void);
 
 	virtual bool               GetSignalDetected(void)    { return m_hasSignal; }
-	virtual bool               IsPairedDevice(void)       { return m_isPairedDevice; }
+	virtual bool               IsSubDevice(void)          { return m_isSubDevice; }
 	virtual std::string        GetDetectedMode(void)      { return m_detectedMode; }
 	virtual BMDPixelFormat     GetPixelFormat(void)       { return m_pixelFormat; }
 	virtual BMDVideoConnection GetActiveConnection(void)  { return m_activeConnection; }
@@ -66,7 +66,7 @@ private:
 	BMDPixelFormat     m_pixelFormat;
 	BMDVideoConnection m_activeConnection;
 
-	bool               m_isPairedDevice;
+	bool               m_isSubDevice;
 	int64_t            m_pairedDeviceId;
 };
 

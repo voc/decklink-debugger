@@ -157,7 +157,7 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iter
 		}
 
 		std::string deviceName = deviceProber->GetDeviceName();
-		if(deviceProber->IsPairedDevice())
+		if(deviceProber->IsSubDevice())
 		{
 			deviceName = "\\-> " + deviceName;
 		}

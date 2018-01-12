@@ -75,10 +75,10 @@ bool DeviceProber::GetSignalDetected(void) {
 	return false;
 }
 
-bool DeviceProber::IsPairedDevice(void) {
+bool DeviceProber::IsSubDevice(void) {
 	if (m_captureDelegate)
 	{
-		return m_captureDelegate->IsPairedDevice();
+		return m_captureDelegate->IsSubDevice();
 	}
 
 	return false;

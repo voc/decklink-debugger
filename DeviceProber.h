@@ -22,7 +22,7 @@ public:
 
 	virtual IDeckLink*         GetIDecklink(void) { return m_deckLink; }
 	virtual bool               GetSignalDetected(void);
-	virtual bool               IsPairedDevice();
+	virtual bool               IsSubDevice();
 	virtual std::string        GetDetectedMode(void);
 	virtual BMDPixelFormat     GetPixelFormat(void);
 	virtual BMDVideoConnection GetActiveConnection(void);

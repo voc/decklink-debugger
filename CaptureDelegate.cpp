@@ -18,7 +18,8 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_hasSignal(false),
 	m_detectedMode(""),
 	m_pixelFormat(0),
-	m_activeConnection(0)
+	m_activeConnection(0),
+	m_isSubDevice(false)
 {
 	m_deckLink->AddRef();
 
@@ -29,12 +30,10 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 
 	try {
 		m_pairedDeviceId = getPairedDeviceId();
-		m_isPairedDevice = true;
 	}
 	catch(const char* error)
 	{
 		m_pairedDeviceId = 0;
-		m_isPairedDevice = false;
 	}
 
 	setDuplexToHalfDuplexModeIfSupported();
@@ -185,6 +184,7 @@ void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported(void)
 		try {
 			// try setDuplexToHalfDuplexModeIfSupported on paired device
 			setDuplexToHalfDuplexModeIfSupported(deckLinkAttributes, deckLinkConfiguration);
+			m_isSubDevice = true;
 			// success
 		}
 		catch(const char* error)

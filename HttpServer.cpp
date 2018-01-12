@@ -179,7 +179,7 @@ int HttpServer::indexRequestHandler(
 	{
 
 		std::string deviceName = deviceProber->GetDeviceName();
-		if(deviceProber->IsPairedDevice())
+		if(deviceProber->IsSubDevice())
 		{
 			deviceName = "↳ " + deviceName;
 		}
