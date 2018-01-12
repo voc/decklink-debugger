@@ -153,6 +153,7 @@ IDeckLink* CaptureDelegate::queryDeckLinkInterfaceByPersistentId(int64_t pairedD
 			return deckLink;
 		}
 
+		deckLink->Release();
 		attr->Release();
 	}
 
