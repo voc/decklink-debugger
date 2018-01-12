@@ -149,7 +149,7 @@ int HttpServer::indexRequestHandler(
 	std::map<std::string, std::string>* responseHeaders,
 	std::stringstream* responseBody
 ) {
-	(*responseHeaders)["Content-Type"] = "text/html";
+	(*responseHeaders)["Content-Type"] = "text/html; charset=UTF-8";
 
 	(*responseBody) <<
 "<!DOCTYPE html>"
