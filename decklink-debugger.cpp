@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <assert.h>
 
+#include <atomic>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -14,7 +15,7 @@
 #include "HttpServer.h"
 #include "TablePrinter.h"
 
-static bool g_do_exit = false;
+static std::atomic<bool> g_do_exit{false};
 
 std::vector<IDeckLink*> collectDeckLinkDevices(void);
 void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices);
@@ -46,7 +47,8 @@ int main (UNUSED int argc, UNUSED char** argv)
 	signal(SIGHUP, sigfunc);
 
 	unsigned int iteration = 0;
-	while(!g_do_exit) {
+	while(!g_do_exit.load(std::memory_order_acquire))
+	{
 		printStatusList(deviceProbers, iteration++);
 
 		for(DeviceProber* deviceProber: deviceProbers) {
