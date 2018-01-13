@@ -252,7 +252,7 @@ int requestHandlerProxy(
 			&responseBody);
 	}
 	catch (const std::exception& ex) {
-		responseBody << "Interal Server Error";
+		responseBody << "Internal Server Error";
 		status_code = MHD_HTTP_INTERNAL_SERVER_ERROR;
 	}
 
