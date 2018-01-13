@@ -2,12 +2,13 @@
  * CaptureDelegate represents the Interface to the DeckLinkAPI
  */
 
-#include <assert.h>
-
 #include <array>
-#include <stdio.h>
 #include <iostream>
 #include <algorithm>
+
+#include <math.h>
+#include <assert.h>
+#include <stdio.h>
 
 #include "CaptureDelegate.h"
 
@@ -19,9 +20,14 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_detectedMode(""),
 	m_pixelFormat(0),
 	m_activeConnection(0),
-	m_isSubDevice(false)
+	m_isSubDevice(false),
+	m_channelAudioLevel{0},
+	m_channelAudioLevelDbFS{0}
 {
 	m_deckLink->AddRef();
+
+	attack_coef  = pow(0.01, 1.0 / ( ATTACK_IN_MS * AUDIO_SAMPLE_RATE * 0.001));
+	release_coef = pow(0.01, 1.0 / ( RELEASE_IN_MS * AUDIO_SAMPLE_RATE * 0.001));
 
 	m_deckLinkInput = queryInputInterface();
 	m_deckLinkConfiguration = queryConfigurationInterface();
@@ -339,7 +345,7 @@ BMDVideoConnection CaptureDelegate::querySelectedConnection(void)
 	return activeConnection;
 }
 
-HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, UNUSED IDeckLinkAudioInputPacket* audioFrame)
+HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, IDeckLinkAudioInputPacket* audioFrame)
 {
 	if (videoFrame == NULL || videoFrame->GetFlags() & bmdFrameHasNoInputSource)
 	{
@@ -349,14 +355,12 @@ HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoF
 	{
 		m_hasSignal = true;
 
-		if(m_lastFrame) {
-			m_lastFrame->Release();
+		handleVideoFrame(videoFrame);
+
+		if(audioFrame)
+		{
+			handleAudioFrame(audioFrame);
 		}
-
-		m_pixelFormat = videoFrame->GetPixelFormat();
-
-		m_lastFrame = videoFrame;
-		m_lastFrame->AddRef();
 
 		// it sometimes happens, that the switch to another connection is ignored when, just at this time,
 		// a signal arrives. Make sure to always report the correct selected interface.
@@ -365,6 +369,56 @@ HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoF
 
 	return S_OK;
 }
+
+void CaptureDelegate::handleVideoFrame(IDeckLinkVideoInputFrame* videoFrame)
+{
+	if(m_lastFrame) {
+		m_lastFrame->Release();
+	}
+
+	m_pixelFormat = videoFrame->GetPixelFormat();
+
+	m_lastFrame = videoFrame;
+	m_lastFrame->AddRef();
+}
+
+void CaptureDelegate::handleAudioFrame(IDeckLinkAudioInputPacket* audioFrame)
+{
+	//long sampleframeSize = AUDIO_SAMPLE_DEPTH_BYTES * AUDIO_CHANNELS;
+	//long bufferSize = audioFrame->GetSampleFrameCount() * sampleframeSize;
+
+	int16_t* buffer;
+	audioFrame->GetBytes((void**) &buffer);
+
+	for(long sampleId = 0; sampleId < audioFrame->GetSampleFrameCount(); sampleId++)
+	{
+		for(long channelId = 0; channelId < AUDIO_CHANNELS; channelId++)
+		{
+			long offset = (sampleId * AUDIO_CHANNELS) + channelId;
+			uint16_t channelValue = abs(buffer[offset]);
+
+			uint16_t envelope = m_channelAudioLevel[channelId];
+			if(channelValue > envelope)
+			{
+				envelope = attack_coef * (envelope - channelValue) + channelValue;
+			}
+			else
+			{
+				envelope = release_coef * (envelope - channelValue) + channelValue;
+			}
+			m_channelAudioLevel[channelId] = envelope;
+		}
+	}
+
+	for(long channelId = 0; channelId < AUDIO_CHANNELS; channelId++)
+	{
+		double value = m_channelAudioLevel[channelId];
+		m_channelAudioLevelDbFS[channelId] = 20.0 * log10(value / 32768);
+	}
+
+	// std::cout << std::setprecision(1) << std::fixed << m_channelAudioLevelDbFS << std::endl;
+}
+
 
 HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChangedEvents events, IDeckLinkDisplayMode *mode, BMDDetectedVideoInputFormatFlags formatFlags)
 {

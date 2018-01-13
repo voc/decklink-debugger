@@ -1,6 +1,8 @@
 #ifndef __CaptureDelegate__
 #define __CaptureDelegate__
 
+#include <array>
+
 #include "DeckLinkAPI.h"
 #include "util.h"
 
@@ -43,15 +45,28 @@ private:
 	void setDuplexToHalfDuplexModeIfSupported(void);
 	void setDuplexToHalfDuplexModeIfSupported(IDeckLinkAttributes* m_deckLinkAttributes, IDeckLinkConfiguration* m_deckLinkConfiguration);
 
+	void handleVideoFrame(IDeckLinkVideoInputFrame* videoFrame);
+	void handleAudioFrame(IDeckLinkAudioInputPacket* audioFrame);
+
 private:
 	static const BMDPixelFormat     PIXEL_FORMAT = bmdFormat10BitYUV;
 	static const BMDVideoInputFlags VIDEO_INPUT_FLAGS = bmdVideoInputEnableFormatDetection;
 
 	static const BMDAudioSampleRate AUDIO_SAMPLE_RATE = bmdAudioSampleRate48kHz;
-	static const int                AUDIO_SAMPLE_DEPTH = 16;
+	static const int                AUDIO_SAMPLE_DEPTH_BYTES = 2;
+	static const int                AUDIO_SAMPLE_DEPTH = AUDIO_SAMPLE_DEPTH_BYTES*8;
 	static const int                AUDIO_CHANNELS = 16;
 
+	static const int                ATTACK_IN_MS = 250;
+	static const int                RELEASE_IN_MS = 500;
+
 private:
+	std::array<double, AUDIO_CHANNELS> GetChannelAudioLevelDbFS(void) { return m_channelAudioLevelDbFS; };
+
+private:
+	double attack_coef;
+	double release_coef;
+
 	IDeckLinkAttributes*      m_deckLinkAttributes = NULL;
 	IDeckLinkConfiguration*   m_deckLinkConfiguration = NULL;
 
@@ -68,6 +83,9 @@ private:
 
 	bool               m_isSubDevice;
 	int64_t            m_pairedDeviceId;
+
+	std::array<uint16_t, AUDIO_CHANNELS> m_channelAudioLevel;
+	std::array<double, AUDIO_CHANNELS> m_channelAudioLevelDbFS;
 };
 
 #endif
