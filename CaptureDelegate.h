@@ -26,6 +26,10 @@ public:
 	virtual void               SelectNextConnection(void);
 
 	virtual IDeckLinkVideoInputFrame* GetLastFrame(void)  { return m_lastFrame; }
+	virtual IDeckLinkAudioInputPacket* GetLastAudio(void)  { return m_lastAudio; }
+
+	static const int                AUDIO_SAMPLE_DEPTH = 16;
+	static const int                AUDIO_CHANNELS = 16;
 
 private:
 	IDeckLinkDisplayMode*   queryFirstDisplayMode(void);
@@ -48,8 +52,6 @@ private:
 	static const BMDVideoInputFlags VIDEO_INPUT_FLAGS = bmdVideoInputEnableFormatDetection;
 
 	static const BMDAudioSampleRate AUDIO_SAMPLE_RATE = bmdAudioSampleRate48kHz;
-	static const int                AUDIO_SAMPLE_DEPTH = 16;
-	static const int                AUDIO_CHANNELS = 16;
 
 private:
 	IDeckLinkAttributes*      m_deckLinkAttributes = NULL;
@@ -60,6 +62,7 @@ private:
 	IDeckLink*                m_deckLink;
 	IDeckLinkInput*           m_deckLinkInput;
 	IDeckLinkVideoInputFrame* m_lastFrame;
+	IDeckLinkAudioInputPacket* m_lastAudio;
 
 	bool               m_hasSignal;
 	std::string        m_detectedMode;

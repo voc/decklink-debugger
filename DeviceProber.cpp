@@ -120,6 +120,16 @@ IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame(void)
 	return NULL;
 }
 
+IDeckLinkAudioInputPacket* DeviceProber::GetLastAudio(void)
+{
+	if (m_captureDelegate)
+	{
+		return m_captureDelegate->GetLastAudio();
+	}
+
+	return NULL;
+}
+
 BMDVideoConnection DeviceProber::GetActiveConnection(void)
 {
 	if (m_captureDelegate)

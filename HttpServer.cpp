@@ -54,6 +54,7 @@ HttpServer::HttpServer(std::vector<DeviceProber*> deviceProbers) :
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
 		m_imageEncoders.push_back(new ImageEncoder(deviceProber));
+		m_audioLevelers.push_back(new AudioLeveler(deviceProber));
 	}
 }
 
@@ -170,6 +171,7 @@ int HttpServer::indexRequestHandler(
 "				<th>Detected Mode</th>"
 "				<th>Pixel Format</th>"
 "				<th>Capture</th>"
+"				<th>Audio Peak Levels</th>"
 "			</thead>"
 "			<tbody>";
 
@@ -205,6 +207,7 @@ int HttpServer::indexRequestHandler(
 
 		(*responseBody) <<
 "					</td>"
+"				    <td>" << m_audioLevelers[deviceIndex]->GetCurrentLevel() << "</td>"
 "				</tr>";
 
 		deviceIndex++;
@@ -213,7 +216,7 @@ int HttpServer::indexRequestHandler(
 	if (deviceIndex == 0) {
 		(*responseBody) <<
 "				<tr>"
-"					<td colspan=\"7\" class=\"none\">"
+"					<td colspan=\"9\" class=\"none\">"
 "						No DeckLink devices found"
 "					</td>"
 "				</tr>";

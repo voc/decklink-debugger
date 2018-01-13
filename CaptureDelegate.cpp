@@ -15,6 +15,7 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_refCount(1),
 	m_deckLink(deckLink),
 	m_lastFrame(NULL),
+	m_lastAudio(NULL),
 	m_hasSignal(false),
 	m_detectedMode(""),
 	m_pixelFormat(0),
@@ -338,7 +339,7 @@ BMDVideoConnection CaptureDelegate::querySelectedConnection(void)
 	return activeConnection;
 }
 
-HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, UNUSED IDeckLinkAudioInputPacket* audioFrame)
+HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoFrame, IDeckLinkAudioInputPacket* audioFrame)
 {
 	if (videoFrame == NULL || videoFrame->GetFlags() & bmdFrameHasNoInputSource)
 	{
@@ -363,6 +364,14 @@ HRESULT CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoInputFrame* videoF
 		m_activeConnection = querySelectedConnection();
 	}
 
+	if (audioFrame) {
+		IDeckLinkAudioInputPacket* lastAudio = m_lastAudio;
+		m_lastAudio = audioFrame;
+		m_lastAudio->AddRef();
+		if (lastAudio) {
+			lastAudio->Release();
+		}
+	}
 	return S_OK;
 }
 

@@ -8,6 +8,7 @@
 
 #include "DeviceProber.h"
 #include "ImageEncoder.h"
+#include "AudioLeveler.h"
 #include "tostring.h"
 
 class HttpServer
@@ -50,6 +51,7 @@ private:
 	int32_t                    m_refCount;
 	std::vector<DeviceProber*> m_deviceProbers;
 	std::vector<ImageEncoder*> m_imageEncoders;
+	std::vector<AudioLeveler*> m_audioLevelers;
 
 	char                       m_hostname[BUFSIZ];
 

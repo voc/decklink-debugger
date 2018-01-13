@@ -30,6 +30,7 @@ public:
 	virtual void               SelectNextConnection(void);
 
 	virtual IDeckLinkVideoInputFrame* GetLastFrame(void);
+	virtual IDeckLinkAudioInputPacket* GetLastAudio(void);
 
 private:
 	bool                 queryCanAutodetect(void);
