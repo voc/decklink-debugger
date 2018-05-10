@@ -46,6 +46,12 @@ private:
 		std::stringstream* responseBody
 	);
 
+	int configRequestHandler(
+		std::string filename,
+		std::map<std::string, std::string>* responseHeaders,
+		std::stringstream* responseBody
+	);
+
 private:
 	int32_t                    m_refCount;
 	std::vector<DeviceProber*> m_deviceProbers;
