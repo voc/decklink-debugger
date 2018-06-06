@@ -78,8 +78,11 @@ add_executable(decklink-debugger
 # Make target depend on resources to make sure the resources target is built before the binary
 add_dependencies(decklink-debugger resources)
 
-# Link to dependencies
-# TODO: search for these dependencies on the system, and report missing dependencies to the user
-target_link_libraries(decklink-debugger dl pthread microhttpd png)
+# Search for and link to dependencies
+find_package(Threads REQUIRED)
+find_package(PNG REQUIRED)
+find_library(MICROHTTPD microhttpd)
+target_link_libraries(decklink-debugger dl ${CMAKE_THREAD_LIBS_INIT} ${MICROHTTPD} ${PNG_LIBRARY})
+target_include_directories(decklink-debugger PRIVATE ${PNG_INCLUDE_DIR})
 
 install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/decklink-debugger" DESTINATION bin)
