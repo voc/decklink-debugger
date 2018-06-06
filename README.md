@@ -18,12 +18,21 @@ Prerequisites:
 - Rename the unpacked SDK directory to something that has no whitespace in it.
 
 ```
+# install Blackmagic libraries
 sudo dpkg -i $HOME/VOC/Blackmagic_Desktop_Video_Linux_10.9.9/deb/x86_64/desktopvideo_10.9.9a4_amd64.deb
-sudo apt-get install libmicrohttpd-dev libpng-dev cmake build-essential
+# install build dependencies
+sudo apt-get install libmicrohttpd-dev libpng-dev cmake make gcc g++
+# clone Git repository
 git clone http://c3voc.de/git/decklink-debugger.git
 cd decklink-debugger
-cmake .
-env CPLUS_INCLUDE_PATH=$HOME/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/ make -j4
+# create build directory
+# you can then start over by removing and recreating this directory
+mkdir build
+cd build
+# specify path to Blackmagic SDK (optional parameter)
+cmake .. -DBLACKMAGIC_SDK_DIR=~/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/
+# compile application
+make -j$(nproc)
 ```
 
 ## Using
