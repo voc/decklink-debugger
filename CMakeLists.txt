@@ -1,5 +1,5 @@
 # CMake-Version
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 # Name
 project(decklink-debugger)
@@ -8,7 +8,8 @@ project(decklink-debugger)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
 
 # C++11
-set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(SYSTEM ${DECKLINK_INCLUDE_DIR})
 
@@ -20,18 +21,19 @@ set(RESOURCE_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/rc.hex")
 file(GLOB_RECURSE RESOURCES_TO_COMPILE RELATIVE "${RESOURCE_SOURCE_DIR}/" "${RESOURCE_SOURCE_DIR}/*")
 file(MAKE_DIRECTORY "${RESOURCE_TARGET_DIR}")
 
+# target representing the resource custom_commands
+add_custom_target(resources)
+
 foreach(INPUT_FILE_NAME ${RESOURCES_TO_COMPILE})
     set(INPUT_FILE  "${RESOURCE_SOURCE_DIR}/${INPUT_FILE_NAME}")
     set(OUTPUT_FILE "${RESOURCE_TARGET_DIR}/${INPUT_FILE_NAME}.hex")
 
     add_custom_command(
-        OUTPUT ${OUTPUT_FILE}
+        TARGET resources POST_BUILD
         MAIN_DEPENDENCY ${INPUT_FILE}
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         COMMAND ${RESOURCE_COMPILER} -i rc/${INPUT_FILE_NAME} ${OUTPUT_FILE}
         COMMENT "Compiling rc/${INPUT_FILE_NAME} in ${CMAKE_CURRENT_SOURCE_DIR}/ to ${OUTPUT_FILE}")
-
-    list(APPEND COMPILED_RESOURCES ${OUTPUT_FILE})
 endforeach()
 
 # Generate File referencing Resources
@@ -40,7 +42,25 @@ configure_file(rc.cpp.in rc.cpp)
 # Include local Headers
 include_directories("${PROJECT_SOURCE_DIR}")
 
-include_directories(SYSTEM "/usr/lib/decklink-sdk/")
+# Check for Blackmagic SDK headers location on the system, and include location
+# User may specify Blackmagic SDK directory as parameter to CMake
+set(BLACKMAGIC_SDK_DIR "" CACHE STRING "Blackmagic SDK dir")
+
+if(BLACKMAGIC_SDK_DIR)
+message(STATUS "Using Blackmagic SDK dir: ${BLACKMAGIC_SDK_DIR}")
+endif()
+
+# Search for header in expected system location and user-specified location
+find_path(DECKLINK_INCLUDE_DIR DeckLinkAPI.h HINTS /usr/lib/decklink-sdk ${BLACKMAGIC_SDK_DIR}/include)
+
+# Exit with error state if Blackmagic SDK files aren't available
+# This way, the user gets proper feedback instead of cryptic compiler errors
+if(NOT DECKLINK_INCLUDE_DIR)
+    message(FATAL_ERROR "Could not find Blackmagic SDK headers. Try specifying the SDK dir using -DBLACKMAGIC_SDK_DIR=...")
+else()
+    message(STATUS "Including DeckLink API files in: ${DECKLINK_INCLUDE_DIR}")
+    include_directories(${DECKLINK_INCLUDE_DIR})
+endif()
 
 # Build Binary
 add_executable(decklink-debugger
@@ -54,10 +74,12 @@ add_executable(decklink-debugger
 	TablePrinter.cpp
 	DeckLinkAPIDispatch.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/rc.cpp
-	${COMPILED_RESOURCES}
 )
+# Make target depend on resources to make sure the resources target is built before the binary
+add_dependencies(decklink-debugger resources)
 
-# Specify Link-Libraries
+# Link to dependencies
+# TODO: search for these dependencies on the system, and report missing dependencies to the user
 target_link_libraries(decklink-debugger dl pthread microhttpd png)
 
 install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/decklink-debugger" DESTINATION bin)
