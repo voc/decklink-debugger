@@ -8,7 +8,7 @@
 
 #include "DeviceProber.h"
 
-DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deckLink)
+DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deckLink), m_captureDelegate(nullptr)
 {
 	m_deckLink->AddRef();
 	m_deckLinkAttributes = queryAttributesInterface();
