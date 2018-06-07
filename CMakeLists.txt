@@ -56,7 +56,7 @@ find_path(DECKLINK_INCLUDE_DIR DeckLinkAPI.h HINTS /usr/lib/decklink-sdk ${BLACK
 # Exit with error state if Blackmagic SDK files aren't available
 # This way, the user gets proper feedback instead of cryptic compiler errors
 if(NOT DECKLINK_INCLUDE_DIR)
-    message(FATAL_ERROR "Could not find Blackmagic SDK headers. Try specifying the SDK dir using -DBLACKMAGIC_SDK_DIR=...")
+    message(FATAL_ERROR "Could not find Blackmagic SDK headers. Try specifying the SDK dir using -DBLACKMAGIC_SDK_DIR=.../Blackmagic-DeckLink-SDK-10.10/Linux/")
 else()
     message(STATUS "Including DeckLink API files in: ${DECKLINK_INCLUDE_DIR}")
     include_directories(${DECKLINK_INCLUDE_DIR})
