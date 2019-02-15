@@ -8,6 +8,9 @@
 
 #include "DeviceProber.h"
 
+#include "scope_guard.hpp"
+#include "log.h"
+
 DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deckLink), m_captureDelegate(nullptr)
 {
 	m_deckLink->AddRef();
@@ -15,9 +18,11 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deck
 
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
+	LOG(DEBUG) << "canInput = " << m_canInput << " && canAutodetect = " << m_canAutodetect;
 
 	if (m_canAutodetect && m_canInput)
 	{
+		LOG(DEBUG) << "creating CaptureDelegate";
 		m_captureDelegate = new CaptureDelegate(m_deckLink);
 		m_captureDelegate->Start();
 	}
@@ -147,10 +152,13 @@ ULONG DeviceProber::Release(void)
 	int32_t newRefValue = __sync_sub_and_fetch(&m_refCount, 1);
 	if (newRefValue == 0)
 	{
+		LOG(DEBUG) << "releasing held references of DeviceProber";
+
 		m_deckLink->Release();
 		m_deckLinkAttributes->Release();
 
 		if(m_captureDelegate != NULL) {
+			LOG(DEBUG) << "releasing CaptureDelegate";
 			m_captureDelegate->Stop();
 
 			assert(m_captureDelegate->Release() == 0);
