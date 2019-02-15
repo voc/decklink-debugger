@@ -11,10 +11,7 @@ class DeviceProber
 {
 public:
 	DeviceProber(IDeckLink* deckLink);
-	virtual ~DeviceProber() {}
-
-	virtual ULONG AddRef(void);
-	virtual ULONG Release(void);
+	virtual ~DeviceProber();
 
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect()  { return m_canAutodetect; }
@@ -37,7 +34,6 @@ private:
 	IDeckLinkAttributes* queryAttributesInterface(void);
 
 private:
-	int32_t              m_refCount;
 	IDeckLink*           m_deckLink;
 	CaptureDelegate*     m_captureDelegate;
 	IDeckLinkAttributes* m_deckLinkAttributes;

@@ -108,8 +108,8 @@ static void sigfunc(int signum)
 	}
 }
 
-std::vector<IDeckLink*> collectDeckLinkDevices(void)
-{
+std::vector<IDeckLink*> collectDeckLinkDevices(void){
+
 	std::vector<IDeckLink*> deckLinkDevices;
 	IDeckLinkIterator*    deckLinkIterator;
 
@@ -164,8 +164,9 @@ void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers)
 	{
 		i++;
 		LOG(DEBUG1) << "freeing DeviceProber for Device " << i;
-		assert(deviceProber->Release() == 0);
+		delete deviceProber;
 	}
+	deviceProbers.clear();
 }
 
 void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iteration)
