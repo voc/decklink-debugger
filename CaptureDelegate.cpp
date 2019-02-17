@@ -186,14 +186,14 @@ void CaptureDelegate::SelectNextConnection()
 	{
 		if(currentConnectionIt == relevantConnections.end())
 		{
-			currentConnectionIt =relevantConnections.begin();
+			currentConnectionIt = relevantConnections.begin();
 		}
 		else {
 			currentConnectionIt++;
 
 			if(currentConnectionIt == relevantConnections.end())
 			{
-				currentConnectionIt =relevantConnections.begin();
+				currentConnectionIt = relevantConnections.begin();
 			}
 		}
 
