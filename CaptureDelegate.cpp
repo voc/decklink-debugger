@@ -39,7 +39,7 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	setDuplexToHalfDuplexModeIfSupported();
 }
 
-IDeckLinkInput* CaptureDelegate::queryInputInterface(void)
+IDeckLinkInput* CaptureDelegate::queryInputInterface()
 {
 	HRESULT result;
 	IDeckLinkInput* deckLinkInput = NULL;
@@ -54,7 +54,7 @@ IDeckLinkInput* CaptureDelegate::queryInputInterface(void)
 	return deckLinkInput;
 }
 
-int64_t CaptureDelegate::getPairedDeviceId(void)
+int64_t CaptureDelegate::getPairedDeviceId()
 {
 	HRESULT result;
 	int64_t paired_device_id;
@@ -68,7 +68,7 @@ int64_t CaptureDelegate::getPairedDeviceId(void)
 	return paired_device_id;
 }
 
-IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface(void)
+IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface()
 {
 	return queryConfigurationInterface(m_deckLink);
 }
@@ -87,7 +87,7 @@ IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface(IDeckLink* 
 	return deckLinkConfiguration;
 }
 
-IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface(void)
+IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface()
 {
 	return queryAttributesInterface(m_deckLink);
 }
@@ -106,7 +106,7 @@ IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface(IDeckLink* deckLi
 	return deckLinkAttributes;
 }
 
-int64_t CaptureDelegate::queryInputConnections(void)
+int64_t CaptureDelegate::queryInputConnections()
 {
 	HRESULT result;
 	int64_t connections;
@@ -161,7 +161,7 @@ IDeckLink* CaptureDelegate::queryDeckLinkInterfaceByPersistentId(int64_t pairedD
 	return NULL;
 }
 
-void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported(void)
+void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported()
 {
 	try {
 		// try setDuplexToHalfDuplexModeIfSupported on this device
@@ -223,7 +223,7 @@ void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported(IDeckLinkAttributes* 
 	}
 }
 
-void CaptureDelegate::Start(void)
+void CaptureDelegate::Start()
 {
 	HRESULT result;
 
@@ -257,7 +257,7 @@ void CaptureDelegate::Start(void)
 	}
 }
 
-void CaptureDelegate::Stop(void)
+void CaptureDelegate::Stop()
 {
 	m_deckLinkInput->StopStreams();
 	m_deckLinkInput->DisableAudioInput();
@@ -266,7 +266,7 @@ void CaptureDelegate::Stop(void)
 	m_deckLinkInput->SetCallback(NULL);
 }
 
-IDeckLinkDisplayMode* CaptureDelegate::queryFirstDisplayMode(void)
+IDeckLinkDisplayMode* CaptureDelegate::queryFirstDisplayMode()
 {
 	HRESULT result;
 
@@ -294,7 +294,7 @@ IDeckLinkDisplayMode* CaptureDelegate::queryFirstDisplayMode(void)
 	return displayMode;
 }
 
-void CaptureDelegate::SelectNextConnection(void)
+void CaptureDelegate::SelectNextConnection()
 {
 	std::array<BMDVideoConnection, 3> relevantConnections = {
 		bmdVideoConnectionSDI,
@@ -330,7 +330,7 @@ void CaptureDelegate::SelectNextConnection(void)
 	m_deckLinkConfiguration->SetInt(bmdDeckLinkConfigVideoInputConnection, m_activeConnection);
 }
 
-BMDVideoConnection CaptureDelegate::querySelectedConnection(void)
+BMDVideoConnection CaptureDelegate::querySelectedConnection()
 {
 	int64_t activeConnection;
 
@@ -396,12 +396,12 @@ HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChang
 	return S_OK;
 }
 
-ULONG CaptureDelegate::AddRef(void)
+ULONG CaptureDelegate::AddRef()
 {
 	return __sync_add_and_fetch(&m_refCount, 1);
 }
 
-ULONG CaptureDelegate::Release(void)
+ULONG CaptureDelegate::Release()
 {
 	int32_t newRefValue = __sync_sub_and_fetch(&m_refCount, 1);
 	if (newRefValue == 0)

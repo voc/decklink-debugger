@@ -31,17 +31,21 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
-	LLOG(DEBUG) << "canInput = " << m_canInput << " && canAutodetect = " << m_canAutodetect;
 
+	LLOG(DEBUG) << "canInput = " << m_canInput
+		<< " && canAutodetect = " << m_canAutodetect;
+
+/*
 	if (m_canAutodetect && m_canInput)
 	{
 		LLOG(DEBUG) << "creating CaptureDelegate";
 		m_captureDelegate = new CaptureDelegate(m_deckLink);
 		m_captureDelegate->Start();
 	}
+*/
 }
 
-IDeckLinkAttributes* DeviceProber::queryAttributesInterface(void)
+IDeckLinkAttributes* DeviceProber::queryAttributesInterface()
 {
 	HRESULT result;
 	IDeckLinkAttributes* deckLinkAttributes = NULL;
@@ -56,7 +60,7 @@ IDeckLinkAttributes* DeviceProber::queryAttributesInterface(void)
 	return deckLinkAttributes;
 }
 
-bool DeviceProber::queryCanInput(void)
+bool DeviceProber::queryCanInput()
 {
 	HRESULT result;
 	IDeckLinkInput* deckLinkInput = NULL;
@@ -68,7 +72,7 @@ bool DeviceProber::queryCanInput(void)
 	return (result == S_OK);
 }
 
-bool DeviceProber::queryCanAutodetect(void)
+bool DeviceProber::queryCanAutodetect()
 {
 	HRESULT result;
 	IDeckLinkAttributes* deckLinkAttributes = NULL;
@@ -85,7 +89,7 @@ bool DeviceProber::queryCanAutodetect(void)
 	return formatDetectionSupported;
 }
 
-bool DeviceProber::GetSignalDetected(void) {
+bool DeviceProber::GetSignalDetected() {
 	if (m_captureDelegate)
 	{
 		return m_captureDelegate->GetSignalDetected();
@@ -94,7 +98,7 @@ bool DeviceProber::GetSignalDetected(void) {
 	return false;
 }
 
-bool DeviceProber::IsSubDevice(void) {
+bool DeviceProber::IsSubDevice() {
 	if (m_captureDelegate)
 	{
 		return m_captureDelegate->IsSubDevice();
@@ -103,7 +107,7 @@ bool DeviceProber::IsSubDevice(void) {
 	return false;
 }
 
-std::string DeviceProber::GetDetectedMode(void)
+std::string DeviceProber::GetDetectedMode()
 {
 	if (m_captureDelegate)
 	{
@@ -116,7 +120,7 @@ std::string DeviceProber::GetDetectedMode(void)
 	return "";
 }
 
-BMDPixelFormat DeviceProber::GetPixelFormat(void)
+BMDPixelFormat DeviceProber::GetPixelFormat()
 {
 	if (m_captureDelegate)
 	{
@@ -129,7 +133,7 @@ BMDPixelFormat DeviceProber::GetPixelFormat(void)
 	return 0;
 }
 
-IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame(void)
+IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame()
 {
 	if (m_captureDelegate)
 	{
@@ -139,7 +143,7 @@ IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame(void)
 	return NULL;
 }
 
-BMDVideoConnection DeviceProber::GetActiveConnection(void)
+BMDVideoConnection DeviceProber::GetActiveConnection()
 {
 	if (m_captureDelegate)
 	{

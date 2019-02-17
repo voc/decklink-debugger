@@ -21,20 +21,19 @@ public:
 	virtual bool        CanInput()       { return m_canInput; }
 
 	// proxy to CaptureDelegate
-	virtual bool               GetSignalDetected(void);
-	virtual bool               IsSubDevice();
-	virtual std::string        GetDetectedMode(void);
-	virtual BMDPixelFormat     GetPixelFormat(void);
-	virtual BMDVideoConnection GetActiveConnection(void);
+	virtual bool               GetSignalDetected();
+	virtual std::string        GetDetectedMode();
+	virtual BMDPixelFormat     GetPixelFormat();
+	virtual BMDVideoConnection GetActiveConnection();
 
-	virtual void               SelectNextConnection(void);
+	virtual void               SelectNextConnection();
 
-	virtual IDeckLinkVideoInputFrame* GetLastFrame(void);
+	virtual IDeckLinkVideoInputFrame* GetLastFrame();
 
 private:
-	bool                 queryCanAutodetect(void);
-	bool                 queryCanInput(void);
-	IDeckLinkAttributes* queryAttributesInterface(void);
+	bool                 queryCanAutodetect();
+	bool                 queryCanInput();
+	IDeckLinkAttributes* queryAttributesInterface();
 
 private:
 	IDeckLink*           m_deckLink;
