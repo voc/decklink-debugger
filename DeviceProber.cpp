@@ -49,7 +49,6 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 
 		LLOG(DEBUG) << "creating CaptureDelegate";
 		m_captureDelegate = new CaptureDelegate(m_deckLink, m_deckLinkInput);
-		m_captureDelegate->Start();
 	}
 }
 
