@@ -7,11 +7,14 @@
 #include "CaptureDelegate.h"
 #include "util.h"
 
+#include "RefReleaser.hpp"
+#include "RefDeleter.hpp"
+
 class DeviceProber
 {
 public:
 	DeviceProber(IDeckLink* deckLink);
-	virtual ~DeviceProber();
+	virtual ~DeviceProber() {}
 
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect()  { return m_canAutodetect; }
@@ -35,8 +38,13 @@ private:
 
 private:
 	IDeckLink*           m_deckLink;
-	CaptureDelegate*     m_captureDelegate;
+	RefReleaser<IDeckLink> m_deckLinkReleaser;
+
 	IDeckLinkAttributes* m_deckLinkAttributes;
+	RefReleaser<IDeckLinkAttributes> m_deckLinkAttributesReleaser;
+
+	CaptureDelegate*     m_captureDelegate;
+	RefDeleter<CaptureDelegate> m_captureDelegateDeleter;
 
 	bool                 m_canAutodetect;
 	bool                 m_canInput;

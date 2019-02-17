@@ -13,20 +13,21 @@
 
 #define LLOG(x) LOG(x) << "DeviceProber: "
 
-DeviceProber::DeviceProber(IDeckLink* deckLink) : m_deckLink(deckLink), m_captureDelegate(nullptr)
+DeviceProber::DeviceProber(IDeckLink* deckLink) :
+	m_deckLink(nullptr),
+	m_deckLinkReleaser(&m_deckLink),
+
+	m_deckLinkAttributes(nullptr),
+	m_deckLinkAttributesReleaser(&m_deckLinkAttributes),
+
+	m_captureDelegate(nullptr),
+	m_captureDelegateDeleter(&m_captureDelegate)
 {
 	LLOG(DEBUG2) << "reffing IDeckLink Interface";
-	m_deckLink->AddRef();
-	auto deckLinkGuard = sg::make_scope_guard([this]{
-		LOG(DEBUG) << "emergency freeing DeckLink Device";
-		m_deckLink->Release();
-	});
+	deckLink->AddRef();
+	m_deckLink = deckLink;
 
 	m_deckLinkAttributes = queryAttributesInterface();
-	auto deckLinkAttributesGuard = sg::make_scope_guard([this]{
-		LOG(DEBUG) << "emergency freeing IDeckLinkAttributes Interface";
-		m_deckLinkAttributes->Release();
-	});
 
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
@@ -36,37 +37,8 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) : m_deckLink(deckLink), m_captur
 	{
 		LLOG(DEBUG) << "creating CaptureDelegate";
 		m_captureDelegate = new CaptureDelegate(m_deckLink);
-		auto captureDelegateGuard = sg::make_scope_guard([this]{
-			LOG(DEBUG) << "emergency freeing CaptureDelegate";
-			m_captureDelegate->Release();
-		});
-
 		m_captureDelegate->Start();
-		captureDelegateGuard.dismiss();
 	}
-
-	deckLinkGuard.dismiss();
-	deckLinkAttributesGuard.dismiss();
-}
-
-DeviceProber::~DeviceProber()
-{
-	LLOG(DEBUG) << "releasing held references of DeviceProber";
-
-	if(m_captureDelegate != NULL) {
-		LLOG(DEBUG2) << "releasing CaptureDelegate";
-		m_captureDelegate->Stop();
-
-		assert(m_captureDelegate->Release() == 0);
-	}
-
-	if(m_deckLinkAttributes != NULL) {
-		LLOG(DEBUG2) << "releasing IDeckLinkAttributes Interface";
-		assert(m_deckLinkAttributes->Release() == 0);
-	}
-
-	LLOG(DEBUG2) << "releasing IDeckLink Interface";
-	m_deckLink->Release();
 }
 
 IDeckLinkAttributes* DeviceProber::queryAttributesInterface(void)
@@ -95,7 +67,7 @@ bool DeviceProber::queryCanInput(void)
 	canInput = (result == S_OK);
 
 	LLOG(DEBUG2) << "releasing IDeckLinkInput Interface";
-	deckLinkInput->Release();
+	assert(deckLinkInput->Release() == 0);
 
 	return canInput;
 }
