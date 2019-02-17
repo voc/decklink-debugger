@@ -14,17 +14,14 @@
 
 #define LLOG(x) LOG(x) << "CaptureDelegate: "
 
-CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
+CaptureDelegate::CaptureDelegate(IDeckLink* deckLink, IDeckLinkInput *deckLinkInput) :
 	m_refCount(1),
 
 	m_deckLink(deckLink),
-	m_deckLinkReleaser(&m_deckLink),
+	m_deckLinkInput(deckLinkInput),
 
 	m_lastFrame(nullptr),
 	m_lastFrameReleaser(&m_lastFrame),
-
-	m_deckLinkInput(nullptr),
-	m_deckLinkInputReleaser(&m_deckLinkInput),
 
 	m_deckLinkConfiguration(nullptr),
 	m_deckLinkConfigurationReleaser(&m_deckLinkConfiguration),
@@ -37,27 +34,11 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_pixelFormat(0),
 	m_activeConnection(0)
 {
-	m_deckLink->AddRef();
-
 	setDuplexToHalfDuplexModeIfSupported();
 
-	m_deckLinkInput = queryInputInterface();
 	m_deckLinkConfiguration = queryConfigurationInterface();
 	m_deckLinkAttributes = queryAttributesInterface();
 	m_decklinkConnections = queryInputConnections();
-}
-
-IDeckLinkInput* CaptureDelegate::queryInputInterface()
-{
-	LLOG(INFO) << __PRETTY_FUNCTION__;
-
-	HRESULT result;
-	IDeckLinkInput* deckLinkInput = nullptr;
-
-	result = m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
-	throwIfNotOk(result, "Failed to get Input Interface");
-
-	return deckLinkInput;
 }
 
 IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface()

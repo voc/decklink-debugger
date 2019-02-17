@@ -41,6 +41,9 @@ private:
 	IDeckLink*             m_deckLink;
 	RefReleaser<IDeckLink> m_deckLinkReleaser;
 
+	IDeckLinkInput*           m_deckLinkInput;
+	RefReleaser<IDeckLinkInput> m_deckLinkInputReleaser;
+
 	CaptureDelegate*       m_captureDelegate;
 	RefReleaser<CaptureDelegate> m_captureDelegateReleaser;
 

@@ -43,9 +43,13 @@ void _main() {
 		throw "No DeckLink devices found";
 	}
 
+
+	LOG(INFO) << "=============================";
+
 	LOG(INFO) << "starting Capturing";
 	for(DeviceProber* deviceProber: deviceProbers) {
 		deviceProber->Start();
+		LOG(INFO) << "-----------------------------";
 	}
 
 	LOG(DEBUG) << "creating HttpServer";
@@ -119,15 +123,16 @@ std::vector<DeviceProber*> createDeviceProbers()
 	try {
 		while (deckLinkIterator->Next(&deckLink) == S_OK)
 		{
+			RefReleaser<IDeckLink> deckLinkReleaser(&deckLink);
 			i++;
 			LOG(DEBUG1) << "creating DeviceProber for Device " << i;
 			deviceProbers.push_back(new DeviceProber(deckLink));
-			deckLink->Release();
 			LOG(INFO) << "-----------------------------";
 		}
 	}
 	catch(...) {
 		LOG(ERROR) << "cought exception, freeing already created DeviceProbers";
+		LOG(INFO) << "-----------------------------";
 		freeDeviceProbers(deviceProbers);
 		throw;
 	}
@@ -143,6 +148,7 @@ void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers)
 		i++;
 		LOG(DEBUG1) << "freeing DeviceProber for Device " << i;
 		delete deviceProber;
+		LOG(INFO) << "-----------------------------";
 	}
 	deviceProbers.clear();
 }

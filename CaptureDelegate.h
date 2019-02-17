@@ -9,7 +9,7 @@
 class CaptureDelegate : public IDeckLinkInputCallback
 {
 public:
-	CaptureDelegate(IDeckLink* deckLink);
+	CaptureDelegate(IDeckLink* deckLink, IDeckLinkInput* deckLinkInput);
 
 	virtual HRESULT QueryInterface(UNUSED REFIID iid, UNUSED LPVOID *ppv) { return E_NOINTERFACE; }
 	virtual ULONG AddRef();
@@ -33,7 +33,6 @@ private:
 	ULONG m_refCount;
 
 	IDeckLinkDisplayMode*   queryFirstDisplayMode();
-	IDeckLinkInput*         queryInputInterface();
 	IDeckLinkConfiguration* queryConfigurationInterface();
 	IDeckLinkAttributes*    queryAttributesInterface();
 
@@ -53,13 +52,10 @@ private:
 
 private:
 	IDeckLink*                m_deckLink;
-	RefReleaser<IDeckLink>    m_deckLinkReleaser;
+	IDeckLinkInput*           m_deckLinkInput;
 
 	IDeckLinkVideoInputFrame*             m_lastFrame;
 	RefReleaser<IDeckLinkVideoInputFrame> m_lastFrameReleaser;
-
-	IDeckLinkInput*             m_deckLinkInput;
-	RefReleaser<IDeckLinkInput> m_deckLinkInputReleaser;
 
 	IDeckLinkConfiguration*             m_deckLinkConfiguration;
 	RefReleaser<IDeckLinkConfiguration> m_deckLinkConfigurationReleaser;

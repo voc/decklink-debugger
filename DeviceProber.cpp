@@ -24,6 +24,9 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 	m_deckLink(deckLink),
 	m_deckLinkReleaser(&m_deckLink),
 
+	m_deckLinkInput(nullptr),
+	m_deckLinkInputReleaser(&m_deckLinkInput),
+
 	m_captureDelegate(nullptr),
 	m_captureDelegateReleaser(&m_captureDelegate)
 {
@@ -40,9 +43,13 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 
 	if (m_canAutodetect && m_canInput)
 	{
+		LLOG(DEBUG) << "querying IID_IDeckLinkInput interface";
+		HRESULT result = m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_deckLinkInput);
+		throwIfNotOk(result, "Failed to query IID_IDeckLinkInput Interface");
+
 		LLOG(DEBUG) << "creating CaptureDelegate";
-		m_captureDelegate = new CaptureDelegate(m_deckLink);
-		//m_captureDelegate->Start();
+		m_captureDelegate = new CaptureDelegate(m_deckLink, m_deckLinkInput);
+		m_captureDelegate->Start();
 	}
 }
 
