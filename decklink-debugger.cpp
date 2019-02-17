@@ -15,6 +15,7 @@
 #include "HttpServer.h"
 #include "TablePrinter.h"
 
+#include "RefReleaser.hpp"
 #include "scope_guard.hpp"
 #include "log.h"
 
