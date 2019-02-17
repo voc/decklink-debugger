@@ -43,15 +43,6 @@ void _main() {
 		throw "No DeckLink devices found";
 	}
 
-
-	LOG(INFO) << "=============================";
-
-	LOG(INFO) << "starting Capturing";
-	for(DeviceProber* deviceProber: deviceProbers) {
-		deviceProber->Start();
-		LOG(INFO) << "-----------------------------";
-	}
-
 	LOG(DEBUG) << "creating HttpServer";
 	HttpServer* httpServer = new HttpServer(deviceProbers);
 	auto httpServerGuard = sg::make_scope_guard([httpServer]{

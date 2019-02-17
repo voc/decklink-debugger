@@ -17,20 +17,23 @@
 CaptureDelegate::CaptureDelegate(IDeckLink* deckLink, IDeckLinkInput *deckLinkInput) :
 	m_refCount(1),
 
-	m_deckLink(deckLink),
-	m_deckLinkInput(deckLinkInput),
-
-	m_lastFrame(nullptr),
-	m_lastFrameReleaser(&m_lastFrame),
-
-	m_deckLinkConfiguration(nullptr),
-	m_deckLinkConfigurationReleaser(&m_deckLinkConfiguration),
+	m_deckLinkParent(nullptr),
+	m_deckLinkParentReleaser(&m_deckLinkParent),
 
 	m_deckLinkParentDeviceConfiguration(nullptr),
 	m_deckLinkParentDeviceConfigurationReleaser(&m_deckLinkParentDeviceConfiguration),
 
+	m_deckLink(deckLink),
+	m_deckLinkInput(deckLinkInput),
+
 	m_deckLinkAttributes(nullptr),
 	m_deckLinkAttributesReleaser(&m_deckLinkAttributes),
+
+	m_deckLinkConfiguration(nullptr),
+	m_deckLinkConfigurationReleaser(&m_deckLinkConfiguration),
+
+	m_lastFrame(nullptr),
+	m_lastFrameReleaser(&m_lastFrame),
 
 	m_hasSignal(false),
 	m_detectedMode(""),
@@ -95,12 +98,11 @@ void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported()
 	else
 	{
 		LLOG(DEBUG) << "This device does not support Duplex-Mode, querying for a Parent-Device";
-		IDeckLink *parentDevice = SubDeviceUtil::QueryParentDevice(m_deckLink);
-		RefReleaser<IDeckLink> parentDeviceReleaser(&parentDevice);
+		m_deckLinkParent = SubDeviceUtil::QueryParentDevice(m_deckLink);
 
-		if(parentDevice != nullptr) {
+		if(m_deckLinkParent != nullptr) {
 			LLOG(DEBUG) << "Parent-Device found, setting Parent-Device to Half-Duplex";
-			setDuplexToHalfDuplexMode(parentDevice);
+			setDuplexToHalfDuplexMode(m_deckLinkParent);
 		}
 	}
 }

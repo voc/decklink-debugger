@@ -14,9 +14,7 @@ class DeviceProber
 {
 public:
 	DeviceProber(IDeckLink* deckLink);
-	virtual ~DeviceProber() {}
-
-	virtual void Start();
+	virtual ~DeviceProber();
 
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect()  { return m_canAutodetect; }

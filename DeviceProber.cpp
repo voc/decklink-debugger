@@ -49,13 +49,18 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 
 		LLOG(DEBUG) << "creating CaptureDelegate";
 		m_captureDelegate = new CaptureDelegate(m_deckLink, m_deckLinkInput);
+
+		LOG(INFO) << "starting CaptureDelegate";
+		m_captureDelegate->Start();
 	}
 }
 
-void DeviceProber::Start()
-{
+DeviceProber::~DeviceProber() {
+	LLOG(INFO) << __PRETTY_FUNCTION__;
+
 	if(m_captureDelegate) {
-		m_captureDelegate->Start();
+		LOG(INFO) << "stopping CaptureDelegate";
+		m_captureDelegate->Stop();
 	}
 }
 

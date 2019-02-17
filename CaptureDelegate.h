@@ -51,20 +51,23 @@ private:
 	static const int                AUDIO_CHANNELS = 16;
 
 private:
-	IDeckLink*                m_deckLink;
-	IDeckLinkInput*           m_deckLinkInput;
-
-	IDeckLinkVideoInputFrame*             m_lastFrame;
-	RefReleaser<IDeckLinkVideoInputFrame> m_lastFrameReleaser;
-
-	IDeckLinkConfiguration*             m_deckLinkConfiguration;
-	RefReleaser<IDeckLinkConfiguration> m_deckLinkConfigurationReleaser;
+	IDeckLink*             m_deckLinkParent;
+	RefReleaser<IDeckLink> m_deckLinkParentReleaser;
 
 	IDeckLinkConfiguration*             m_deckLinkParentDeviceConfiguration;
 	RefReleaser<IDeckLinkConfiguration> m_deckLinkParentDeviceConfigurationReleaser;
 
+	IDeckLink*                m_deckLink;
+	IDeckLinkInput*           m_deckLinkInput;
+
 	IDeckLinkAttributes*             m_deckLinkAttributes;
 	RefReleaser<IDeckLinkAttributes> m_deckLinkAttributesReleaser;
+
+	IDeckLinkConfiguration*             m_deckLinkConfiguration;
+	RefReleaser<IDeckLinkConfiguration> m_deckLinkConfigurationReleaser;
+
+	IDeckLinkVideoInputFrame*             m_lastFrame;
+	RefReleaser<IDeckLinkVideoInputFrame> m_lastFrameReleaser;
 
 	int64_t                   m_decklinkConnections;
 
