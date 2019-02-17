@@ -19,6 +19,7 @@ public:
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect()  { return m_canAutodetect; }
 	virtual bool        CanInput()       { return m_canInput; }
+	virtual bool        IsSubDevice()    { return m_isSubDevice; }
 
 	// proxy to CaptureDelegate
 	virtual bool               GetSignalDetected();
@@ -33,6 +34,7 @@ public:
 private:
 	bool                 queryCanAutodetect();
 	bool                 queryCanInput();
+	bool                 queryIsSubDevice();
 	IDeckLinkAttributes* queryAttributesInterface();
 
 private:
@@ -43,6 +45,7 @@ private:
 
 	bool                 m_canAutodetect;
 	bool                 m_canInput;
+	bool                 m_isSubDevice;
 };
 
 #endif

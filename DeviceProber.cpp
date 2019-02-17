@@ -31,9 +31,11 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
+	m_isSubDevice = queryIsSubDevice();
 
 	LLOG(DEBUG) << "canInput = " << m_canInput
-		<< " && canAutodetect = " << m_canAutodetect;
+		<< " && canAutodetect = " << m_canAutodetect
+		<< "; isSubDevice = " << m_isSubDevice;
 
 /*
 	if (m_canAutodetect && m_canInput)
@@ -82,6 +84,7 @@ bool DeviceProber::queryCanAutodetect()
 	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
 	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
 
+	LLOG(DEBUG1) << "querying BMDDeckLinkSupportsInputFormatDetection flag";
 	bool formatDetectionSupported;
 	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
 	throwIfNotOk(result, "Could not query BMDDeckLinkSupportsInputFormatDetection flag");
@@ -89,19 +92,34 @@ bool DeviceProber::queryCanAutodetect()
 	return formatDetectionSupported;
 }
 
+bool DeviceProber::queryIsSubDevice()
+{
+	HRESULT result;
+	IDeckLinkAttributes* deckLinkAttributes = NULL;
+	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+
+	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
+	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+
+	int64_t paired_device_id;
+	LLOG(DEBUG1) << "querying BMDDeckLinkPairedDevicePersistentID attribute";
+	result = deckLinkAttributes->GetInt(BMDDeckLinkPairedDevicePersistentID, &paired_device_id);
+	throwIfNotOk(result, "remove me test");
+	if(result != S_OK)
+	{
+		return false;
+	}
+
+	LOG(INFO) << "BMDDeckLinkPairedDevicePersistentID = " << paired_device_id;
+
+	return (paired_device_id != 0);
+}
+
 bool DeviceProber::GetSignalDetected() {
 	if (m_captureDelegate)
 	{
 		return m_captureDelegate->GetSignalDetected();
-	}
-
-	return false;
-}
-
-bool DeviceProber::IsSubDevice() {
-	if (m_captureDelegate)
-	{
-		return m_captureDelegate->IsSubDevice();
 	}
 
 	return false;
