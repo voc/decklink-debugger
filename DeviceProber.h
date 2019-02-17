@@ -40,9 +40,6 @@ private:
 	IDeckLink*           m_deckLink;
 	RefReleaser<IDeckLink> m_deckLinkReleaser;
 
-	IDeckLinkAttributes* m_deckLinkAttributes;
-	RefReleaser<IDeckLinkAttributes> m_deckLinkAttributesReleaser;
-
 	std::unique_ptr<CaptureDelegate> m_captureDelegate;
 
 	bool                 m_canAutodetect;

@@ -23,16 +23,11 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 	m_deckLink(nullptr),
 	m_deckLinkReleaser(&m_deckLink),
 
-	m_deckLinkAttributes(nullptr),
-	m_deckLinkAttributesReleaser(&m_deckLinkAttributes),
-
 	m_captureDelegate(nullptr)
 {
 	LLOG(DEBUG2) << "reffing IDeckLink Interface";
 	deckLink->AddRef();
 	m_deckLink = deckLink;
-
-	m_deckLinkAttributes = queryAttributesInterface();
 
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
@@ -65,29 +60,27 @@ bool DeviceProber::queryCanInput(void)
 {
 	HRESULT result;
 	IDeckLinkInput* deckLinkInput = NULL;
-	bool canInput;
 
 	LLOG(DEBUG1) << "querying IDeckLinkInput Interface";
 	result = m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
-	canInput = (result == S_OK);
+	RefReleaser<IDeckLinkInput> deckLinkInputReleaser(&deckLinkInput);
 
-	LLOG(DEBUG2) << "releasing IDeckLinkInput Interface";
-	assert(deckLinkInput->Release() == 0);
-
-	return canInput;
+	return (result == S_OK);
 }
 
 bool DeviceProber::queryCanAutodetect(void)
 {
 	HRESULT result;
-	bool formatDetectionSupported;
+	IDeckLinkAttributes* deckLinkAttributes = NULL;
+	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
 
-	LLOG(DEBUG1) << "querying BMDDeckLinkSupportsInputFormatDetection attribute";
-	result = m_deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
-	if (result != S_OK)
-	{
-		return false;
-	}
+	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
+	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+
+	bool formatDetectionSupported;
+	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
+	throwIfNotOk(result, "Could not query BMDDeckLinkSupportsInputFormatDetection flag");
 
 	return formatDetectionSupported;
 }
