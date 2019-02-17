@@ -43,6 +43,11 @@ void _main() {
 		throw "No DeckLink devices found";
 	}
 
+	LOG(INFO) << "starting Capturing";
+	for(DeviceProber* deviceProber: deviceProbers) {
+		deviceProber->Start();
+	}
+
 	LOG(DEBUG) << "creating HttpServer";
 	HttpServer* httpServer = new HttpServer(deviceProbers);
 	auto httpServerGuard = sg::make_scope_guard([httpServer]{
@@ -117,6 +122,8 @@ std::vector<DeviceProber*> createDeviceProbers()
 			i++;
 			LOG(DEBUG1) << "creating DeviceProber for Device " << i;
 			deviceProbers.push_back(new DeviceProber(deckLink));
+			deckLink->Release();
+			LOG(INFO) << "-----------------------------";
 		}
 	}
 	catch(...) {

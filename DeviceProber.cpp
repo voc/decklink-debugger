@@ -24,8 +24,10 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 	m_deckLink(deckLink),
 	m_deckLinkReleaser(&m_deckLink),
 
-	m_captureDelegate(nullptr)
+	m_captureDelegate(nullptr),
+	m_captureDelegateReleaser(&m_captureDelegate)
 {
+	m_deckLink->AddRef();
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 
 	m_canInput = queryCanInput();
@@ -36,14 +38,19 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 		<< " && canAutodetect = " << m_canAutodetect
 		<< "; isSubDevice = " << m_isSubDevice;
 
-/*
 	if (m_canAutodetect && m_canInput)
 	{
 		LLOG(DEBUG) << "creating CaptureDelegate";
 		m_captureDelegate = new CaptureDelegate(m_deckLink);
+		//m_captureDelegate->Start();
+	}
+}
+
+void DeviceProber::Start()
+{
+	if(m_captureDelegate) {
 		m_captureDelegate->Start();
 	}
-*/
 }
 
 bool DeviceProber::queryCanInput()
@@ -51,7 +58,7 @@ bool DeviceProber::queryCanInput()
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 
 	HRESULT result;
-	IDeckLinkInput* deckLinkInput = NULL;
+	IDeckLinkInput* deckLinkInput = nullptr;
 
 	LLOG(DEBUG1) << "querying IDeckLinkInput Interface";
 	result = m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
@@ -65,7 +72,7 @@ bool DeviceProber::queryCanAutodetect()
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 
 	HRESULT result;
-	IDeckLinkAttributes* deckLinkAttributes = NULL;
+	IDeckLinkAttributes* deckLinkAttributes = nullptr;
 	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
 
 	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
@@ -145,7 +152,7 @@ void DeviceProber::SelectNextConnection(void) {
 std::string DeviceProber::GetDeviceName() {
 	HRESULT result;
 
-	char* deviceNameString = NULL;
+	char* deviceNameString = nullptr;
 
 	result = m_deckLink->GetDisplayName((const char **) &deviceNameString);
 	throwIfNotOk(result, "Failed to get the Name for the DeckLink Device");

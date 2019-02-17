@@ -10,251 +10,154 @@
 #include <algorithm>
 
 #include "CaptureDelegate.h"
+#include "SubDeviceUtil.h"
+
+#define LLOG(x) LOG(x) << "CaptureDelegate: "
 
 CaptureDelegate::CaptureDelegate(IDeckLink* deckLink) :
 	m_refCount(1),
+
 	m_deckLink(deckLink),
-	m_lastFrame(NULL),
+	m_deckLinkReleaser(&m_deckLink),
+
+	m_lastFrame(nullptr),
+	m_lastFrameReleaser(&m_lastFrame),
+
+	m_deckLinkInput(nullptr),
+	m_deckLinkInputReleaser(&m_deckLinkInput),
+
+	m_deckLinkConfiguration(nullptr),
+	m_deckLinkConfigurationReleaser(&m_deckLinkConfiguration),
+
+	m_deckLinkAttributes(nullptr),
+	m_deckLinkAttributesReleaser(&m_deckLinkAttributes),
+
 	m_hasSignal(false),
 	m_detectedMode(""),
 	m_pixelFormat(0),
-	m_activeConnection(0),
-	m_isSubDevice(false)
+	m_activeConnection(0)
 {
 	m_deckLink->AddRef();
+
+	setDuplexToHalfDuplexModeIfSupported();
 
 	m_deckLinkInput = queryInputInterface();
 	m_deckLinkConfiguration = queryConfigurationInterface();
 	m_deckLinkAttributes = queryAttributesInterface();
 	m_decklinkConnections = queryInputConnections();
-
-	try {
-		m_pairedDeviceId = getPairedDeviceId();
-	}
-	catch(const char* error)
-	{
-		m_pairedDeviceId = 0;
-	}
-
-	setDuplexToHalfDuplexModeIfSupported();
 }
 
 IDeckLinkInput* CaptureDelegate::queryInputInterface()
 {
+	LLOG(INFO) << __PRETTY_FUNCTION__;
+
 	HRESULT result;
-	IDeckLinkInput* deckLinkInput = NULL;
+	IDeckLinkInput* deckLinkInput = nullptr;
 
 	result = m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to get Input Interface" << std::endl;
-		exit(1);
-	}
+	throwIfNotOk(result, "Failed to get Input Interface");
 
 	return deckLinkInput;
 }
 
-int64_t CaptureDelegate::getPairedDeviceId()
-{
-	HRESULT result;
-	int64_t paired_device_id;
-
-	result = m_deckLinkAttributes->GetInt(BMDDeckLinkPairedDevicePersistentID, &paired_device_id);
-	if (result != S_OK)
-	{
-		throw "Can't query paired Device-ID";
-	}
-
-	return paired_device_id;
-}
-
 IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface()
 {
-	return queryConfigurationInterface(m_deckLink);
-}
+	LLOG(INFO) << __PRETTY_FUNCTION__;
 
-IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface(IDeckLink* deckLink)
-{
 	HRESULT result;
-	IDeckLinkConfiguration* deckLinkConfiguration = NULL;
+	IDeckLinkConfiguration* deckLinkConfiguration = nullptr;
 
-	result = deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&deckLinkConfiguration);
-	if (result != S_OK) {
-		std::cerr << "Could not obtain the IID_IDeckLinkConfiguration interface" << std::endl;
-		exit(1);
-	}
+	result = m_deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&deckLinkConfiguration);
+	throwIfNotOk(result, "Could not obtain the IID_IDeckLinkConfiguration interface");
 
 	return deckLinkConfiguration;
 }
 
 IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface()
 {
-	return queryAttributesInterface(m_deckLink);
-}
+	LLOG(INFO) << __PRETTY_FUNCTION__;
 
-IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface(IDeckLink* deckLink)
-{
 	HRESULT result;
-	IDeckLinkAttributes* deckLinkAttributes = NULL;
+	IDeckLinkAttributes* deckLinkAttributes = nullptr;
 
-	result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
-	if (result != S_OK) {
-		std::cerr << "Could not obtain the IID_IDeckLinkAttributes interface" << std::endl;
-		exit(1);
-	}
+	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IID_IDeckLinkAttributes interface");
 
 	return deckLinkAttributes;
 }
 
 int64_t CaptureDelegate::queryInputConnections()
 {
+	LLOG(INFO) << __PRETTY_FUNCTION__;
+
 	HRESULT result;
 	int64_t connections;
 
 	result = m_deckLinkAttributes->GetInt(BMDDeckLinkVideoInputConnections, &connections);
-	if (result != S_OK)
-	{
-		std::cerr << "Could not obtain the list of input connections" << std::endl;
-		exit(1);
-	}
+	throwIfNotOk(result, "Could not obtain the list of input connections");
 
 	return connections;
 }
 
-IDeckLink* CaptureDelegate::queryDeckLinkInterfaceByPersistentId(int64_t pairedDeviceId)
-{
-	IDeckLinkIterator *iter = CreateDeckLinkIteratorInstance();
-
-	if (!iter) {
-		std::cerr << "A DeckLink iterator could not be created." << std::endl;
-		exit(1);
-	}
-
-	IDeckLinkAttributes *attr = NULL;
-	IDeckLink *deckLink = NULL;
-
-	while (iter->Next(&deckLink) == S_OK) {
-		if (deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&attr) != S_OK) {
-			iter->Release();
-			return NULL;
-		}
-
-		int64_t persistent_id;
-		if (attr->GetInt(BMDDeckLinkPersistentID, &persistent_id) == S_OK) {
-			attr->Release();
-			iter->Release();
-			return NULL;
-		}
-
-		if(pairedDeviceId == persistent_id)
-		{
-			attr->Release();
-			iter->Release();
-			return deckLink;
-		}
-
-		deckLink->Release();
-		attr->Release();
-	}
-
-	iter->Release();
-	return NULL;
-}
-
 void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported()
 {
-	try {
-		// try setDuplexToHalfDuplexModeIfSupported on this device
-		setDuplexToHalfDuplexModeIfSupported(m_deckLinkAttributes, m_deckLinkConfiguration);
-		// succes
-	}
-	catch(const char* error)
+	LLOG(INFO) << __PRETTY_FUNCTION__;
+
+	if(SubDeviceUtil::SupportsDuplexMode(m_deckLink))
 	{
-		// failed. trying paired device
-
-		IDeckLink *pairedDecklink = queryDeckLinkInterfaceByPersistentId(m_pairedDeviceId);
-		if(pairedDecklink == NULL)
-		{
-			// no paired device, nothing left to do.
-			return;
-		}
-
-		IDeckLinkAttributes* deckLinkAttributes = queryAttributesInterface(pairedDecklink);
-		IDeckLinkConfiguration* deckLinkConfiguration = queryConfigurationInterface(pairedDecklink);
-
-		try {
-			// try setDuplexToHalfDuplexModeIfSupported on paired device
-			setDuplexToHalfDuplexModeIfSupported(deckLinkAttributes, deckLinkConfiguration);
-			m_isSubDevice = true;
-			// success
-		}
-		catch(const char* error)
-		{
-			// failed, nothing left to do
-		}
-
-		deckLinkConfiguration->Release();
-		deckLinkAttributes->Release();
-		pairedDecklink->Release();
+		LLOG(DEBUG) << "This device supports Duplex-Mode, setting to Half-Duplex";
+		setDuplexToHalfDuplexMode(m_deckLink);
 	}
+	else
+	{
+		LLOG(DEBUG) << "This device does not support Duplex-Mode, querying for a Parent-Device";
+		IDeckLink *parentDevice = SubDeviceUtil::QueryParentDevice(m_deckLink);
+		RefReleaser<IDeckLink> parentDeviceReleaser(&parentDevice);
 
-	// all done
+		if(parentDevice != nullptr) {
+			LLOG(DEBUG) << "Parent-Device found, setting Parent-Device to Half-Duplex";
+			setDuplexToHalfDuplexMode(parentDevice);
+		}
+	}
 }
 
-void CaptureDelegate::setDuplexToHalfDuplexModeIfSupported(IDeckLinkAttributes* deckLinkAttributes, IDeckLinkConfiguration* deckLinkConfiguration)
+void CaptureDelegate::setDuplexToHalfDuplexMode(IDeckLink *deckLink)
 {
+	LLOG(INFO) << __PRETTY_FUNCTION__;
 	HRESULT result;
-	bool duplex_supported = false;
 
-	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsDuplexModeConfiguration, &duplex_supported);
-	if (result != S_OK)
-	{
-		throw "Setting duplex mode failed";
-	}
+	IDeckLinkConfiguration *deckLinkConfiguration = nullptr;
+	RefReleaser<IDeckLinkConfiguration> deckLinkConfigurationReleaser(&deckLinkConfiguration);
 
-	if(!duplex_supported)
-	{
-		throw "Setting duplex mode failed";
-	}
+	result = deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&deckLinkConfiguration);
+	throwIfNotOk(result, "Could not obtain the IID_IDeckLinkConfiguration interface");
 
 	result = deckLinkConfiguration->SetInt(bmdDeckLinkConfigDuplexMode, bmdDuplexModeHalf);
-	if (result != S_OK) {
-		throw "Setting duplex mode failed";
-	}
+	throwIfNotOk(result, "Setting duplex mode failed");
 }
 
 void CaptureDelegate::Start()
 {
+	LLOG(INFO) << __PRETTY_FUNCTION__;
 	HRESULT result;
 
 	IDeckLinkDisplayMode* displayMode = queryFirstDisplayMode();
+	RefReleaser<IDeckLinkDisplayMode> displayModeReleaser(&displayMode);
 
+	LLOG(DEBUG) << "Setting Callback to *this*";
 	m_deckLinkInput->SetCallback(this);
 
+	LLOG(DEBUG) << "Enabling Video-Input";
 	result = m_deckLinkInput->EnableVideoInput(displayMode->GetDisplayMode(), PIXEL_FORMAT, VIDEO_INPUT_FLAGS);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to enable video input. Is another application using the card?" << std::endl;
-		exit(1);
-	}
+	throwIfNotOk(result, "Failed to enable video input. Is another application using the card?");
 
 	result = m_deckLinkInput->EnableAudioInput(AUDIO_SAMPLE_RATE, AUDIO_SAMPLE_DEPTH, AUDIO_CHANNELS);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to enable audio-input" << std::endl;
-		exit(1);
-	}
-
-	assert(displayMode->Release() == 0);
+	throwIfNotOk(result, "Failed to enable audio-input");
 
 	SelectNextConnection();
 
 	result = m_deckLinkInput->StartStreams();
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to enable video input. Is another application using the card?" << std::endl;
-		exit(1);
-	}
+	throwIfNotOk(result, "Failed to enable video input. Is another application using the card?");
 }
 
 void CaptureDelegate::Stop()
@@ -263,34 +166,28 @@ void CaptureDelegate::Stop()
 	m_deckLinkInput->DisableAudioInput();
 	m_deckLinkInput->DisableVideoInput();
 
-	m_deckLinkInput->SetCallback(NULL);
+	m_deckLinkInput->SetCallback(nullptr);
 }
 
 IDeckLinkDisplayMode* CaptureDelegate::queryFirstDisplayMode()
 {
 	HRESULT result;
 
-	IDeckLinkDisplayModeIterator*	displayModeIterator = NULL;
-	IDeckLinkDisplayMode*			displayMode = NULL;
+	IDeckLinkDisplayModeIterator*	displayModeIterator = nullptr;
+	RefReleaser<IDeckLinkDisplayModeIterator> displayModeIteratorReleaser(&displayModeIterator);
+
+	IDeckLinkDisplayMode*			displayMode = nullptr;
+	RefReleaser<IDeckLinkDisplayMode> displayModeReleaser(&displayMode);
 
 
 	result = m_deckLinkInput->GetDisplayModeIterator(&displayModeIterator);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to get Display-Mode Iterator" << std::endl;
-		exit(1);
-	}
+	throwIfNotOk(result, "Failed to get Display-Mode Iterator");
 
 	// just select first display-mode to start auto-detection from
 	result = displayModeIterator->Next(&displayMode);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to get Display-Mode from Iterator" << std::endl;
-		exit(1);
-	}
+	throwIfNotOk(result, "Failed to get Display-Mode from Iterator");
 
-	assert(displayModeIterator->Release() == 0);
-
+	displayMode->AddRef();
 	return displayMode;
 }
 
@@ -398,22 +295,18 @@ HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChang
 
 ULONG CaptureDelegate::AddRef()
 {
-	return __sync_add_and_fetch(&m_refCount, 1);
+	ULONG newRefValue = __sync_add_and_fetch(&m_refCount, 1);
+	LLOG(DEBUG2) << __PRETTY_FUNCTION__ << " newRefValue = " << newRefValue;
+	return newRefValue;
 }
 
 ULONG CaptureDelegate::Release()
 {
-	int32_t newRefValue = __sync_sub_and_fetch(&m_refCount, 1);
+	ULONG newRefValue = __sync_sub_and_fetch(&m_refCount, 1);
+	LLOG(DEBUG2) << __PRETTY_FUNCTION__ << " newRefValue = " << newRefValue;
 	if (newRefValue == 0)
 	{
-		m_deckLinkInput->Release();
-
-		m_deckLinkConfiguration->Release();
-		m_deckLinkAttributes->Release();
-		m_deckLink->Release();
-
 		delete this;
-		return 0;
 	}
 	return newRefValue;
 }

@@ -7,6 +7,7 @@ class SubDeviceUtil
 {
 public:
 	static bool IsSubDevice(IDeckLink *deckLink);
+	static bool SupportsDuplexMode(IDeckLink *deckLink);
 	static IDeckLink *QueryParentDevice(IDeckLink *deckLink);
 
 private:

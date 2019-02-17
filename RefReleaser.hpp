@@ -9,9 +9,14 @@ class RefReleaser
 public:
 	RefReleaser(T **ptr) : m_ptr(ptr) {};
 	~RefReleaser() {
-		LOG(DEBUG1) << __PRETTY_FUNCTION__ << " releasing";
 		if((m_ptr != nullptr) && ((*m_ptr) != nullptr)) {
-			(*m_ptr)->Release();
+			ULONG newRefCount = (*m_ptr)->Release();
+			if(newRefCount == 0) {
+				LOG(DEBUG3) << __PRETTY_FUNCTION__ << " released & deleted";
+			}
+			else {
+				LOG(DEBUG3) << __PRETTY_FUNCTION__ << " released";
+			}
 		}
 	}
 

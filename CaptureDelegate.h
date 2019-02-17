@@ -2,6 +2,8 @@
 #define __CaptureDelegate__
 
 #include "DeckLinkAPI.h"
+
+#include "RefReleaser.hpp"
 #include "util.h"
 
 class CaptureDelegate : public IDeckLinkInputCallback
@@ -12,6 +14,7 @@ public:
 	virtual HRESULT QueryInterface(UNUSED REFIID iid, UNUSED LPVOID *ppv) { return E_NOINTERFACE; }
 	virtual ULONG AddRef();
 	virtual ULONG Release();
+
 	virtual HRESULT VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags);
 	virtual HRESULT VideoInputFrameArrived(IDeckLinkVideoInputFrame*, IDeckLinkAudioInputPacket*);
 
@@ -19,7 +22,6 @@ public:
 	virtual void Stop();
 
 	virtual bool               GetSignalDetected()    { return m_hasSignal; }
-	virtual bool               IsSubDevice()          { return m_isSubDevice; }
 	virtual std::string        GetDetectedMode()      { return m_detectedMode; }
 	virtual BMDPixelFormat     GetPixelFormat()       { return m_pixelFormat; }
 	virtual BMDVideoConnection GetActiveConnection()  { return m_activeConnection; }
@@ -28,20 +30,18 @@ public:
 	virtual IDeckLinkVideoInputFrame* GetLastFrame()  { return m_lastFrame; }
 
 private:
+	ULONG m_refCount;
+
 	IDeckLinkDisplayMode*   queryFirstDisplayMode();
 	IDeckLinkInput*         queryInputInterface();
-	IDeckLinkConfiguration* queryConfigurationInterface(IDeckLink* deckLink);
 	IDeckLinkConfiguration* queryConfigurationInterface();
-	IDeckLinkAttributes*    queryAttributesInterface(IDeckLink* deckLink);
 	IDeckLinkAttributes*    queryAttributesInterface();
+
 	int64_t                 queryInputConnections();
 	BMDVideoConnection      querySelectedConnection();
 
-	IDeckLink*              queryDeckLinkInterfaceByPersistentId(int64_t pairedDeviceId);
-	int64_t                 getPairedDeviceId();
-
 	void setDuplexToHalfDuplexModeIfSupported();
-	void setDuplexToHalfDuplexModeIfSupported(IDeckLinkAttributes* m_deckLinkAttributes, IDeckLinkConfiguration* m_deckLinkConfiguration);
+	static void setDuplexToHalfDuplexMode(IDeckLink *deckLink);
 
 private:
 	static const BMDPixelFormat     PIXEL_FORMAT = bmdFormat10BitYUV;
@@ -52,22 +52,27 @@ private:
 	static const int                AUDIO_CHANNELS = 16;
 
 private:
-	IDeckLinkAttributes*      m_deckLinkAttributes = NULL;
-	IDeckLinkConfiguration*   m_deckLinkConfiguration = NULL;
-
-	int32_t                   m_refCount;
-	int64_t                   m_decklinkConnections;
 	IDeckLink*                m_deckLink;
-	IDeckLinkInput*           m_deckLinkInput;
-	IDeckLinkVideoInputFrame* m_lastFrame;
+	RefReleaser<IDeckLink>    m_deckLinkReleaser;
+
+	IDeckLinkVideoInputFrame*             m_lastFrame;
+	RefReleaser<IDeckLinkVideoInputFrame> m_lastFrameReleaser;
+
+	IDeckLinkInput*             m_deckLinkInput;
+	RefReleaser<IDeckLinkInput> m_deckLinkInputReleaser;
+
+	IDeckLinkConfiguration*             m_deckLinkConfiguration;
+	RefReleaser<IDeckLinkConfiguration> m_deckLinkConfigurationReleaser;
+
+	IDeckLinkAttributes*             m_deckLinkAttributes;
+	RefReleaser<IDeckLinkAttributes> m_deckLinkAttributesReleaser;
+
+	int64_t                   m_decklinkConnections;
 
 	bool               m_hasSignal;
 	std::string        m_detectedMode;
 	BMDPixelFormat     m_pixelFormat;
 	BMDVideoConnection m_activeConnection;
-
-	bool               m_isSubDevice;
-	int64_t            m_pairedDeviceId;
 };
 
 #endif

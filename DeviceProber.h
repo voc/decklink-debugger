@@ -16,6 +16,8 @@ public:
 	DeviceProber(IDeckLink* deckLink);
 	virtual ~DeviceProber() {}
 
+	virtual void Start();
+
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect()  { return m_canAutodetect; }
 	virtual bool        CanInput()       { return m_canInput; }
@@ -36,10 +38,11 @@ private:
 	bool                 queryCanInput();
 
 private:
-	IDeckLink*           m_deckLink;
+	IDeckLink*             m_deckLink;
 	RefReleaser<IDeckLink> m_deckLinkReleaser;
 
-	std::unique_ptr<CaptureDelegate> m_captureDelegate;
+	CaptureDelegate*       m_captureDelegate;
+	RefReleaser<CaptureDelegate> m_captureDelegateReleaser;
 
 	bool                 m_canAutodetect;
 	bool                 m_canInput;

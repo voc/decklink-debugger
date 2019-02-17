@@ -12,7 +12,33 @@ bool SubDeviceUtil::IsSubDevice(IDeckLink *deckLink)
 	IDeckLink *parentDevice = QueryParentDevice(deckLink);
 	RefReleaser<IDeckLink> parentDeviceReleaser(&parentDevice);
 
-	return parentDevice != nullptr;
+	bool isSubDevice = parentDevice != nullptr;
+	LOG(DEBUG1) << "isSubDevice = " << isSubDevice;
+
+	return isSubDevice;
+}
+
+bool SubDeviceUtil::SupportsDuplexMode(IDeckLink *deckLink)
+{
+	LLOG(INFO) << __PRETTY_FUNCTION__;
+
+	HRESULT result;
+	IDeckLinkAttributes* deckLinkAttributes = nullptr;
+	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+
+	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
+	result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+
+	LLOG(DEBUG1) << "querying BMDDeckLinkSupportsDuplexModeConfiguration flag";
+	bool supportsDuplexModeConfiguration;
+	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsDuplexModeConfiguration, &supportsDuplexModeConfiguration);
+	if(result != S_OK) {
+		LLOG(DEBUG1) << "failed to query BMDDeckLinkSupportsDuplexModeConfiguration flag";
+		return false;
+	}
+
+	return supportsDuplexModeConfiguration;
 }
 
 IDeckLink *SubDeviceUtil::QueryParentDevice(IDeckLink *deckLink)
@@ -20,7 +46,7 @@ IDeckLink *SubDeviceUtil::QueryParentDevice(IDeckLink *deckLink)
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 
 	HRESULT result;
-	IDeckLinkAttributes* deckLinkAttributes = NULL;
+	IDeckLinkAttributes* deckLinkAttributes = nullptr;
 	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
 
 	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
@@ -36,29 +62,14 @@ IDeckLink *SubDeviceUtil::QueryParentDevice(IDeckLink *deckLink)
 		return nullptr;
 	}
 
-	LLOG(DEBUG1) << "found paired device-id " << pairedDeviceId << ", looking device up";
+	LLOG(DEBUG1) << "found paired device-id 0x" << std::hex << pairedDeviceId << ", looking device up";
 	IDeckLink *pairedDevice = findDeckLinkInterfaceByPersistentId(pairedDeviceId);
 	RefReleaser<IDeckLink> pairedDeviceReleaser(&pairedDevice);
 	throwIfNull(pairedDevice, "did not find device for pairedDeviceId reported by Decklink-Device");
 
-	IDeckLinkAttributes* pairedDeckLinkAttributes = NULL;
-	RefReleaser<IDeckLinkAttributes> pairedDeckLinkAttributesReleaser(&pairedDeckLinkAttributes);
-
-	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface of pairedDevice";
-	result = pairedDevice->QueryInterface(IID_IDeckLinkAttributes, (void **)&pairedDeckLinkAttributes);
-	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
-
-	LLOG(DEBUG1) << "querying BMDDeckLinkSupportsDuplexModeConfiguration flag";
-	bool supportsDuplexModeConfiguration;
-	result = pairedDeckLinkAttributes->GetFlag(BMDDeckLinkSupportsDuplexModeConfiguration, &supportsDuplexModeConfiguration);
-	if(result != S_OK) {
-		LLOG(DEBUG1) << "failed to query BMDDeckLinkSupportsDuplexModeConfiguration flag of pairedDevice, this is no SubDevice";
-		return nullptr;
-	}
-
-	if(!supportsDuplexModeConfiguration)
+	if(!SupportsDuplexMode(pairedDevice))
 	{
-		LLOG(DEBUG) << "found paired device is not a Parent-Device, so this is probably already the Parent-Device";
+		LLOG(DEBUG) << "paired Device does not support Duplex-Mode and is this no Parent-Device";
 		return nullptr;
 	}
 
@@ -84,7 +95,7 @@ IDeckLink *SubDeviceUtil::findDeckLinkInterfaceByPersistentId(int64_t pairedDevi
 		LLOG(DEBUG) << "probing Device " << i;
 		RefReleaser<IDeckLink> deckLinkReleaser(&deckLink);
 
-		IDeckLinkAttributes* deckLinkAttributes = NULL;
+		IDeckLinkAttributes* deckLinkAttributes = nullptr;
 		RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
 
 		LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
