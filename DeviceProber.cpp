@@ -20,15 +20,11 @@
 #define LLOG(x) LOG(x) << "DeviceProber: "
 
 DeviceProber::DeviceProber(IDeckLink* deckLink) :
-	m_deckLink(nullptr),
+	m_deckLink(deckLink),
 	m_deckLinkReleaser(&m_deckLink),
 
 	m_captureDelegate(nullptr)
 {
-	LLOG(DEBUG2) << "reffing IDeckLink Interface";
-	deckLink->AddRef();
-	m_deckLink = deckLink;
-
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
 	m_isSubDevice = queryIsSubDevice();
