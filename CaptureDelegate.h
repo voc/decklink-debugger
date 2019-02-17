@@ -40,7 +40,7 @@ private:
 	BMDVideoConnection      querySelectedConnection();
 
 	void setDuplexToHalfDuplexModeIfSupported();
-	static void setDuplexToHalfDuplexMode(IDeckLink *deckLink);
+	void setDuplexToHalfDuplexMode(IDeckLink *deckLink);
 
 private:
 	static const BMDPixelFormat     PIXEL_FORMAT = bmdFormat10BitYUV;
@@ -59,6 +59,9 @@ private:
 
 	IDeckLinkConfiguration*             m_deckLinkConfiguration;
 	RefReleaser<IDeckLinkConfiguration> m_deckLinkConfigurationReleaser;
+
+	IDeckLinkConfiguration*             m_deckLinkParentDeviceConfiguration;
+	RefReleaser<IDeckLinkConfiguration> m_deckLinkParentDeviceConfigurationReleaser;
 
 	IDeckLinkAttributes*             m_deckLinkAttributes;
 	RefReleaser<IDeckLinkAttributes> m_deckLinkAttributesReleaser;

@@ -26,6 +26,9 @@ CaptureDelegate::CaptureDelegate(IDeckLink* deckLink, IDeckLinkInput *deckLinkIn
 	m_deckLinkConfiguration(nullptr),
 	m_deckLinkConfigurationReleaser(&m_deckLinkConfiguration),
 
+	m_deckLinkParentDeviceConfiguration(nullptr),
+	m_deckLinkParentDeviceConfigurationReleaser(&m_deckLinkParentDeviceConfiguration),
+
 	m_deckLinkAttributes(nullptr),
 	m_deckLinkAttributesReleaser(&m_deckLinkAttributes),
 
@@ -107,13 +110,10 @@ void CaptureDelegate::setDuplexToHalfDuplexMode(IDeckLink *deckLink)
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 	HRESULT result;
 
-	IDeckLinkConfiguration *deckLinkConfiguration = nullptr;
-	RefReleaser<IDeckLinkConfiguration> deckLinkConfigurationReleaser(&deckLinkConfiguration);
-
-	result = deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&deckLinkConfiguration);
+	result = deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&m_deckLinkParentDeviceConfiguration);
 	throwIfNotOk(result, "Could not obtain the IID_IDeckLinkConfiguration interface");
 
-	result = deckLinkConfiguration->SetInt(bmdDeckLinkConfigDuplexMode, bmdDuplexModeHalf);
+	result = m_deckLinkParentDeviceConfiguration->SetInt(bmdDeckLinkConfigDuplexMode, bmdDuplexModeHalf);
 	throwIfNotOk(result, "Setting duplex mode failed");
 }
 
