@@ -1,0 +1,114 @@
+#include "SubDeviceUtil.h"
+
+#include "RefReleaser.hpp"
+#include "util.h"
+
+#define LLOG(x) LOG(x) << "SubDeviceUtil: "
+
+bool SubDeviceUtil::IsSubDevice(IDeckLink *deckLink)
+{
+	LLOG(INFO) << __PRETTY_FUNCTION__;
+
+	IDeckLink *parentDevice = QueryParentDevice(deckLink);
+	RefReleaser<IDeckLink> parentDeviceReleaser(&parentDevice);
+
+	return parentDevice != nullptr;
+}
+
+IDeckLink *SubDeviceUtil::QueryParentDevice(IDeckLink *deckLink)
+{
+	LLOG(INFO) << __PRETTY_FUNCTION__;
+
+	HRESULT result;
+	IDeckLinkAttributes* deckLinkAttributes = NULL;
+	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+
+	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
+	result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+
+	LLOG(DEBUG1) << "querying BMDDeckLinkPairedDevicePersistentID attribute";
+	int64_t pairedDeviceId;
+	result = deckLinkAttributes->GetInt(BMDDeckLinkPairedDevicePersistentID, &pairedDeviceId);
+	if(result != S_OK)
+	{
+		LLOG(DEBUG1) << "failed to query BMDDeckLinkPairedDevicePersistentID attribute, this is no SubDevice";
+		return nullptr;
+	}
+
+	LLOG(DEBUG1) << "found paired device-id " << pairedDeviceId << ", looking device up";
+	IDeckLink *pairedDevice = findDeckLinkInterfaceByPersistentId(pairedDeviceId);
+	RefReleaser<IDeckLink> pairedDeviceReleaser(&pairedDevice);
+	throwIfNull(pairedDevice, "did not find device for pairedDeviceId reported by Decklink-Device");
+
+	IDeckLinkAttributes* pairedDeckLinkAttributes = NULL;
+	RefReleaser<IDeckLinkAttributes> pairedDeckLinkAttributesReleaser(&pairedDeckLinkAttributes);
+
+	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface of pairedDevice";
+	result = pairedDevice->QueryInterface(IID_IDeckLinkAttributes, (void **)&pairedDeckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+
+	LLOG(DEBUG1) << "querying BMDDeckLinkSupportsDuplexModeConfiguration flag";
+	bool supportsDuplexModeConfiguration;
+	result = pairedDeckLinkAttributes->GetFlag(BMDDeckLinkSupportsDuplexModeConfiguration, &supportsDuplexModeConfiguration);
+	if(result != S_OK) {
+		LLOG(DEBUG1) << "failed to query BMDDeckLinkSupportsDuplexModeConfiguration flag of pairedDevice, this is no SubDevice";
+		return nullptr;
+	}
+
+	if(!supportsDuplexModeConfiguration)
+	{
+		LLOG(DEBUG) << "found paired device is not a Parent-Device, so this is probably already the Parent-Device";
+		return nullptr;
+	}
+
+	LLOG(DEBUG) << "found matching Parent-Device";
+	pairedDevice->AddRef();
+	return pairedDevice;
+}
+
+IDeckLink *SubDeviceUtil::findDeckLinkInterfaceByPersistentId(int64_t pairedDeviceId)
+{
+	LLOG(INFO) << __PRETTY_FUNCTION__;
+
+	HRESULT result;
+	IDeckLinkIterator *deckLinkIterator = CreateDeckLinkIteratorInstance();
+	RefReleaser<IDeckLinkIterator> iterReleaser(&deckLinkIterator);
+	throwIfNull(deckLinkIterator,
+		"A DeckLink iterator could not be created.");
+
+	unsigned int i = 0;
+	IDeckLink *deckLink = nullptr;
+	while (deckLinkIterator->Next(&deckLink) == S_OK) {
+		i++;
+		LLOG(DEBUG) << "probing Device " << i;
+		RefReleaser<IDeckLink> deckLinkReleaser(&deckLink);
+
+		IDeckLinkAttributes* deckLinkAttributes = NULL;
+		RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+
+		LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
+		result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+		throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+
+		LLOG(DEBUG1) << "querying BMDDeckLinkPersistentID attribute";
+		int64_t persistent_id;
+		result = deckLinkAttributes->GetInt(BMDDeckLinkPersistentID, &persistent_id);
+		if(result != S_OK) {
+			LLOG(DEBUG1) << "could not query the BMDDeckLinkPersistentID attribute, continuing with next device";
+			continue;
+		}
+
+		if(pairedDeviceId == persistent_id)
+		{
+			LLOG(DEBUG) << "found matching device";
+			deckLink->AddRef();
+			return deckLink;
+		}
+
+		LLOG(DEBUG) << "not the device we are looking for";
+	}
+
+	LLOG(DEBUG) << "found no matching device";
+	return NULL;
+}

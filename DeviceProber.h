@@ -34,10 +34,6 @@ public:
 private:
 	bool                 queryCanAutodetect();
 	bool                 queryCanInput();
-	bool                 queryIsSubDevice();
-	IDeckLinkAttributes* queryAttributesInterface();
-
-	IDeckLink*           findDeckLinkInterfaceByPersistentId(int64_t pairedDeviceId);
 
 private:
 	IDeckLink*           m_deckLink;

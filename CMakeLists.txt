@@ -68,6 +68,7 @@ add_executable(decklink-debugger
     tostring.cpp
     log.cpp
     util.cpp
+    SubDeviceUtil.cpp
     CaptureDelegate.cpp
     DeviceProber.cpp
     HttpServer.cpp
