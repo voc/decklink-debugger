@@ -5,6 +5,24 @@
 
 inline std::string NowTime();
 
+TLogLevel Log::logLevel = ERROR;
+
+TLogLevel& operator++(TLogLevel& level)
+{
+    switch(level) {
+        case ERROR : return level = WARNING;
+        case WARNING : return level = INFO;
+        case INFO : return level = DEBUG;
+        case DEBUG : return level = DEBUG1;
+        case DEBUG1 : return level = DEBUG2;
+        case DEBUG2 : return level = DEBUG3;
+        case DEBUG3 : return level = DEBUG4;
+        case DEBUG4 : return level;
+    }
+
+    throw "Invalid LogLevel-Value";
+}
+
 Log::Log()
 {
 }
@@ -24,10 +42,14 @@ Log::~Log()
    fflush(stderr);
 }
 
-TLogLevel& Log::ReportingLevel()
+TLogLevel Log::IncrementReportingLevel()
 {
-    static TLogLevel reportingLevel = DEBUG4;
-    return reportingLevel;
+    return ++Log::logLevel;
+}
+
+TLogLevel Log::ReportingLevel()
+{
+    return Log::logLevel;
 }
 
 std::string Log::ToString(TLogLevel level)

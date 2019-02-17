@@ -9,6 +9,7 @@
   else Log().Get(level)
 
 enum TLogLevel {ERROR, WARNING, INFO, DEBUG, DEBUG1, DEBUG2, DEBUG3, DEBUG4};
+TLogLevel& operator++(TLogLevel& level);
 
 class Log
 {
@@ -17,11 +18,13 @@ public:
     virtual ~Log();
     std::ostringstream& Get(TLogLevel level = INFO);
 public:
-    static TLogLevel& ReportingLevel();
+    static TLogLevel IncrementReportingLevel();
+    static TLogLevel ReportingLevel();
     static std::string ToString(TLogLevel level);
 protected:
     std::ostringstream os;
 private:
+    static TLogLevel logLevel;
     Log(const Log&);
     Log& operator =(const Log&);
 };

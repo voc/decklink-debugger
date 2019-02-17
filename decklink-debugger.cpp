@@ -36,6 +36,8 @@ void _main() {
 	auto deviceProbersGuard = sg::make_scope_guard([deviceProbers]{
 		LOG(DEBUG) << "freeing Device-Probers";
 		freeDeviceProbers(deviceProbers);
+
+		std::cout << "Bye!" << std::endl;
 	});
 
 	if(deviceProbers.size() == 0)
@@ -69,11 +71,24 @@ void _main() {
 		sleep(1);
 	}
 
-	std::cout << "Bye." << std::endl;
+	std::cout << "Cleaning up…" << std::endl;
 }
 
 int main (UNUSED int argc, UNUSED char** argv)
 {
+	char c;
+	while ((c = getopt(argc, argv, "v")) != -1) {
+		switch (c) {
+			case 'v':
+				Log::IncrementReportingLevel();
+				break;
+		}
+	}
+
+	if(Log::ReportingLevel() > ERROR) {
+		std::cerr << "Log-Level set to " << Log::ToString(Log::ReportingLevel()) << std::endl << std::endl;
+	}
+
 	try {
 		_main();
 	}
