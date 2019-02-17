@@ -26,8 +26,7 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 	m_deckLinkAttributes(nullptr),
 	m_deckLinkAttributesReleaser(&m_deckLinkAttributes),
 
-	m_captureDelegate(nullptr),
-	m_captureDelegateDeleter(&m_captureDelegate)
+	m_captureDelegate(nullptr)
 {
 	LLOG(DEBUG2) << "reffing IDeckLink Interface";
 	deckLink->AddRef();

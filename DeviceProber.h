@@ -2,13 +2,13 @@
 #define __DeviceProber__
 
 #include <string>
+#include <memory>
 
 #include "DeckLinkAPI.h"
 #include "CaptureDelegate.h"
 #include "util.h"
 
 #include "RefReleaser.hpp"
-#include "RefDeleter.hpp"
 
 class DeviceProber
 {
@@ -43,8 +43,7 @@ private:
 	IDeckLinkAttributes* m_deckLinkAttributes;
 	RefReleaser<IDeckLinkAttributes> m_deckLinkAttributesReleaser;
 
-	CaptureDelegate*     m_captureDelegate;
-	RefDeleter<CaptureDelegate> m_captureDelegateDeleter;
+	std::unique_ptr<CaptureDelegate> m_captureDelegate;
 
 	bool                 m_canAutodetect;
 	bool                 m_canInput;
