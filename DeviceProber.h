@@ -20,7 +20,7 @@ public:
 	virtual bool        CanAutodetect()  { return m_canAutodetect; }
 	virtual bool        CanInput()       { return m_canInput; }
 
-	virtual IDeckLink*         GetIDecklink(void) { return m_deckLink; }
+	// proxy to CaptureDelegate
 	virtual bool               GetSignalDetected(void);
 	virtual bool               IsSubDevice();
 	virtual std::string        GetDetectedMode(void);

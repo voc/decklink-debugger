@@ -1,5 +1,11 @@
 /**
- * DeviceProber represents the Interface to the main Application
+ * DeviceProber represents an Interface to the static and always-true
+ * information about a declink-device.
+ * If the device allows auto-input and auto-detection, a CaptureDelegate will
+ * be started, which will aquire realtime-information about the current signal
+ * present on this device.
+ * All calls to the CaptureDelegate are proxied through the DeviceProber, so
+ * the DeviceProber is the primary interface to the main application.
  */
 
 #include <stdio.h>
