@@ -31,7 +31,7 @@ DeviceProber::DeviceProber(IDeckLink* deckLink) :
 	m_captureDelegateReleaser(&m_captureDelegate)
 {
 	m_deckLink->AddRef();
-	LLOG(INFO) << __PRETTY_FUNCTION__;
+	LLOG(INFO) << __PRETTY_FUNCTION__ << " for \"" << GetDeviceName() << "\"";
 
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
