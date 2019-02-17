@@ -37,6 +37,8 @@ private:
 	bool                 queryIsSubDevice();
 	IDeckLinkAttributes* queryAttributesInterface();
 
+	IDeckLink*           findDeckLinkInterfaceByPersistentId(int64_t pairedDeviceId);
+
 private:
 	IDeckLink*           m_deckLink;
 	RefReleaser<IDeckLink> m_deckLinkReleaser;
