@@ -10,12 +10,12 @@ public:
 	RefReleaser(T **ptr) : m_ptr(ptr) {};
 	~RefReleaser() {
 		if((m_ptr != nullptr) && ((*m_ptr) != nullptr)) {
-			ULONG newRefCount = (*m_ptr)->Release();
-			if(newRefCount == 0) {
+			ULONG nRef = (*m_ptr)->Release();
+			if(nRef == 0) {
 				LOG(DEBUG3) << __PRETTY_FUNCTION__ << " released & deleted";
 			}
 			else {
-				LOG(DEBUG3) << __PRETTY_FUNCTION__ << " released";
+				LOG(DEBUG3) << __PRETTY_FUNCTION__ << " released (nRef=" << nRef << ")";
 			}
 		}
 	}
