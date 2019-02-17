@@ -163,5 +163,7 @@ std::string DeviceProber::GetDeviceName() {
 	result = m_deckLink->GetDisplayName((const char **) &deviceNameString);
 	throwIfNotOk(result, "Failed to get the Name for the DeckLink Device");
 
-	return std::string(deviceNameString);
+	std::string str = std::string(deviceNameString);
+	free(deviceNameString);
+	return str;
 }
