@@ -2,48 +2,52 @@
 #define __DeviceProber__
 
 #include <string>
+#include <memory>
 
 #include "DeckLinkAPI.h"
 #include "CaptureDelegate.h"
 #include "util.h"
 
+#include "RefReleaser.hpp"
+
 class DeviceProber
 {
 public:
 	DeviceProber(IDeckLink* deckLink);
-	virtual ~DeviceProber() {}
-
-	virtual ULONG AddRef(void);
-	virtual ULONG Release(void);
+	virtual ~DeviceProber();
 
 	virtual std::string GetDeviceName();
 	virtual bool        CanAutodetect()  { return m_canAutodetect; }
 	virtual bool        CanInput()       { return m_canInput; }
+	virtual bool        IsSubDevice()    { return m_isSubDevice; }
 
-	virtual IDeckLink*         GetIDecklink(void) { return m_deckLink; }
-	virtual bool               GetSignalDetected(void);
-	virtual bool               IsSubDevice();
-	virtual std::string        GetDetectedMode(void);
-	virtual BMDPixelFormat     GetPixelFormat(void);
-	virtual BMDVideoConnection GetActiveConnection(void);
+	// proxy to CaptureDelegate
+	virtual bool               GetSignalDetected();
+	virtual std::string        GetDetectedMode();
+	virtual BMDPixelFormat     GetPixelFormat();
+	virtual BMDVideoConnection GetActiveConnection();
 
-	virtual void               SelectNextConnection(void);
+	virtual void               SelectNextConnection();
 
-	virtual IDeckLinkVideoInputFrame* GetLastFrame(void);
-
-private:
-	bool                 queryCanAutodetect(void);
-	bool                 queryCanInput(void);
-	IDeckLinkAttributes* queryAttributesInterface(void);
+	virtual IDeckLinkVideoInputFrame* GetLastFrame();
 
 private:
-	int32_t              m_refCount;
-	IDeckLink*           m_deckLink;
-	CaptureDelegate*     m_captureDelegate;
-	IDeckLinkAttributes* m_deckLinkAttributes;
+	bool                 queryCanAutodetect();
+	bool                 queryCanInput();
+
+private:
+	IDeckLink*             m_deckLink;
+	RefReleaser<IDeckLink> m_deckLinkReleaser;
+
+	IDeckLinkInput*           m_deckLinkInput;
+	RefReleaser<IDeckLinkInput> m_deckLinkInputReleaser;
+
+	CaptureDelegate*       m_captureDelegate;
+	RefReleaser<CaptureDelegate> m_captureDelegateReleaser;
 
 	bool                 m_canAutodetect;
 	bool                 m_canInput;
+	bool                 m_isSubDevice;
 };
 
 #endif

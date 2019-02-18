@@ -15,12 +15,13 @@
 #include "HttpServer.h"
 #include "TablePrinter.h"
 
+#include "RefReleaser.hpp"
+#include "scope_guard.hpp"
+#include "log.h"
+
 static std::atomic<bool> g_do_exit{false};
 
-std::vector<IDeckLink*> collectDeckLinkDevices(void);
-void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices);
-
-std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkDevices);
+std::vector<DeviceProber*> createDeviceProbers();
 void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers);
 
 void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iteration);
@@ -28,24 +29,35 @@ char* getDeviceName(IDeckLink* deckLink);
 
 static void sigfunc(int signum);
 
-int main (UNUSED int argc, UNUSED char** argv)
-{
-	std::vector<IDeckLink*> deckLinkDevices = collectDeckLinkDevices();
+void _main() {
+	LOG(DEBUG) << "creating Device-Probers";
+	std::vector<DeviceProber*> deviceProbers = createDeviceProbers();
 
-	if(deckLinkDevices.size() == 0)
+	auto deviceProbersGuard = sg::make_scope_guard([deviceProbers]{
+		LOG(DEBUG) << "freeing Device-Probers";
+		freeDeviceProbers(deviceProbers);
+
+		std::cout << "Bye!" << std::endl;
+	});
+
+	if(deviceProbers.size() == 0)
 	{
-		std::cout << "No DeckLink devices found" << std::endl;
-		exit(2);
+		throw "No DeckLink devices found";
 	}
 
-	std::vector<DeviceProber*> deviceProbers = createDeviceProbers(deckLinkDevices);
-
+	LOG(DEBUG) << "creating HttpServer";
 	HttpServer* httpServer = new HttpServer(deviceProbers);
+	auto httpServerGuard = sg::make_scope_guard([httpServer]{
+		LOG(DEBUG) << "freeing HttpServer";
+		assert(httpServer->Release() == 0);
+	});
 
+	LOG(DEBUG2) << "registering Signal-Handler";
 	signal(SIGINT, sigfunc);
 	signal(SIGTERM, sigfunc);
 	signal(SIGHUP, sigfunc);
 
+	LOG(DEBUG2) << "entering Display-Loop";
 	unsigned int iteration = 0;
 	while(!g_do_exit.load(std::memory_order_acquire))
 	{
@@ -59,65 +71,76 @@ int main (UNUSED int argc, UNUSED char** argv)
 		sleep(1);
 	}
 
-	std::cout << "Shutting down" << std::endl;
-	freeDeviceProbers(deviceProbers);
-	freeDeckLinkDevices(deckLinkDevices);
-	assert(httpServer->Release() == 0);
+	std::cout << "Cleaning up…" << std::endl;
+}
 
-	std::cout << "Bye." << std::endl;
+int main (UNUSED int argc, UNUSED char** argv)
+{
+	char c;
+	while ((c = getopt(argc, argv, "v")) != -1) {
+		switch (c) {
+			case 'v':
+				Log::IncrementReportingLevel();
+				break;
+		}
+	}
+
+	if(Log::ReportingLevel() > ERROR) {
+		std::cerr << "Log-Level set to " << Log::ToString(Log::ReportingLevel()) << std::endl << std::endl;
+	}
+
+	try {
+		_main();
+	}
+	catch(const char* e) {
+		std::cerr << "exception cought: " << e << std::endl;
+		return 1;
+	}
+	catch(...) {
+		std::cerr << "unknown exception cought" << std::endl;
+		return 1;
+	}
+
 	return 0;
 }
 
 static void sigfunc(int signum)
 {
+	LOG(INFO) << "cought signal "<< signum;
 	if (signum == SIGINT || signum == SIGTERM)
 	{
+		LOG(DEBUG) << "g_do_exit = true";
 		g_do_exit = true;
 	}
 }
 
-std::vector<IDeckLink*> collectDeckLinkDevices(void)
+std::vector<DeviceProber*> createDeviceProbers()
 {
-	std::vector<IDeckLink*> deckLinkDevices;
-	IDeckLinkIterator*    deckLinkIterator;
+	IDeckLinkIterator*    deckLinkIterator = CreateDeckLinkIteratorInstance();
+	RefReleaser<IDeckLinkIterator> deckLinkIteratorReleaser(&deckLinkIterator);
+	throwIfNull(deckLinkIterator,
+		"A DeckLink iterator could not be created. "
+		"The DeckLink drivers may not be installed.");
 
-	deckLinkIterator = CreateDeckLinkIteratorInstance();
-	if (deckLinkIterator == NULL)
-	{
-		std::cerr
-			<< "A DeckLink iterator could not be created."
-			<< "The DeckLink drivers may not be installed."
-			<< std::endl;
-
-		exit(1);
-	}
-
-	IDeckLink* deckLink = NULL;
-	while (deckLinkIterator->Next(&deckLink) == S_OK)
-	{
-		deckLinkDevices.push_back(deckLink);
-	}
-
-	assert(deckLinkIterator->Release() == 0);
-
-	return deckLinkDevices;
-}
-
-void freeDeckLinkDevices(std::vector<IDeckLink*> deckLinkDevices)
-{
-	for(IDeckLink* deckLink: deckLinkDevices)
-	{
-		deckLink->Release();
-	}
-}
-
-std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkDevices)
-{
 	std::vector<DeviceProber*> deviceProbers;
 
-	for(IDeckLink* deckLink: deckLinkDevices)
-	{
-		deviceProbers.push_back(new DeviceProber(deckLink));
+	unsigned int i = 0;
+	IDeckLink* deckLink = nullptr;
+	try {
+		while (deckLinkIterator->Next(&deckLink) == S_OK)
+		{
+			RefReleaser<IDeckLink> deckLinkReleaser(&deckLink);
+			i++;
+			LOG(DEBUG1) << "creating DeviceProber for Device " << i;
+			deviceProbers.push_back(new DeviceProber(deckLink));
+			LOG(INFO) << "-----------------------------";
+		}
+	}
+	catch(...) {
+		LOG(ERROR) << "cought exception, freeing already created DeviceProbers";
+		LOG(INFO) << "-----------------------------";
+		freeDeviceProbers(deviceProbers);
+		throw;
 	}
 
 	return deviceProbers;
@@ -125,10 +148,15 @@ std::vector<DeviceProber*> createDeviceProbers(std::vector<IDeckLink*> deckLinkD
 
 void freeDeviceProbers(std::vector<DeviceProber*> deviceProbers)
 {
+	unsigned int i = 0;
 	for(DeviceProber* deviceProber : deviceProbers)
 	{
-		assert(deviceProber->Release() == 0);
+		i++;
+		LOG(DEBUG1) << "freeing DeviceProber for Device " << i;
+		delete deviceProber;
+		LOG(INFO) << "-----------------------------";
 	}
+	deviceProbers.clear();
 }
 
 void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iteration)

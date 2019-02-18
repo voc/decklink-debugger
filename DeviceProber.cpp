@@ -1,5 +1,11 @@
 /**
- * DeviceProber represents the Interface to the main Application
+ * DeviceProber represents an Interface to the static and always-true
+ * information about a declink-device.
+ * If the device allows auto-input and auto-detection, a CaptureDelegate will
+ * be started, which will aquire realtime-information about the current signal
+ * present on this device.
+ * All calls to the CaptureDelegate are proxied through the DeviceProber, so
+ * the DeviceProber is the primary interface to the main application.
  */
 
 #include <stdio.h>
@@ -7,66 +13,92 @@
 #include <iostream>
 
 #include "DeviceProber.h"
+#include "SubDeviceUtil.h"
 
-DeviceProber::DeviceProber(IDeckLink* deckLink) : m_refCount(1), m_deckLink(deckLink), m_captureDelegate(nullptr)
+#include "scope_guard.hpp"
+#include "log.h"
+
+#define LLOG(x) LOG(x) << "DeviceProber: "
+
+DeviceProber::DeviceProber(IDeckLink* deckLink) :
+	m_deckLink(deckLink),
+	m_deckLinkReleaser(&m_deckLink),
+
+	m_deckLinkInput(nullptr),
+	m_deckLinkInputReleaser(&m_deckLinkInput),
+
+	m_captureDelegate(nullptr),
+	m_captureDelegateReleaser(&m_captureDelegate)
 {
 	m_deckLink->AddRef();
-	m_deckLinkAttributes = queryAttributesInterface();
+	LLOG(INFO) << __PRETTY_FUNCTION__ << " for \"" << GetDeviceName() << "\"";
 
 	m_canInput = queryCanInput();
 	m_canAutodetect = queryCanAutodetect();
+	m_isSubDevice = SubDeviceUtil::IsSubDevice(m_deckLink);
+
+	LLOG(DEBUG) << "canInput = " << m_canInput
+		<< " && canAutodetect = " << m_canAutodetect
+		<< "; isSubDevice = " << m_isSubDevice;
 
 	if (m_canAutodetect && m_canInput)
 	{
-		m_captureDelegate = new CaptureDelegate(m_deckLink);
+		LLOG(DEBUG) << "querying IID_IDeckLinkInput interface";
+		HRESULT result = m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&m_deckLinkInput);
+		throwIfNotOk(result, "Failed to query IID_IDeckLinkInput Interface");
+
+		LLOG(DEBUG) << "creating CaptureDelegate";
+		m_captureDelegate = new CaptureDelegate(m_deckLink, m_deckLinkInput);
+
+		LOG(INFO) << "starting CaptureDelegate";
 		m_captureDelegate->Start();
 	}
 }
 
-IDeckLinkAttributes* DeviceProber::queryAttributesInterface(void)
-{
-	HRESULT result;
-	IDeckLinkAttributes* deckLinkAttributes = NULL;
+DeviceProber::~DeviceProber() {
+	LLOG(INFO) << __PRETTY_FUNCTION__;
 
-	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
-	if (result != S_OK) {
-		std::cerr << "Could not obtain the IID_IDeckLinkAttributes interface" << std::endl;
-		exit(1);
+	if(m_captureDelegate) {
+		LOG(INFO) << "stopping CaptureDelegate";
+		m_captureDelegate->Stop();
 	}
-
-	return deckLinkAttributes;
 }
 
-bool DeviceProber::queryCanInput(void)
+bool DeviceProber::queryCanInput()
 {
-	HRESULT result;
-	IDeckLinkInput* deckLinkInput = NULL;
-	bool canInput;
+	LLOG(INFO) << __PRETTY_FUNCTION__;
 
+	HRESULT result;
+	IDeckLinkInput* deckLinkInput = nullptr;
+
+	LLOG(DEBUG1) << "querying IDeckLinkInput Interface";
 	result = m_deckLink->QueryInterface(IID_IDeckLinkInput, (void**)&deckLinkInput);
-	canInput = (result == S_OK);
+	RefReleaser<IDeckLinkInput> deckLinkInputReleaser(&deckLinkInput);
 
-	deckLinkInput->Release();
-
-	return canInput;
+	return (result == S_OK);
 }
 
-bool DeviceProber::queryCanAutodetect(void)
+bool DeviceProber::queryCanAutodetect()
 {
-	HRESULT result;
-	bool formatDetectionSupported;
+	LLOG(INFO) << __PRETTY_FUNCTION__;
 
-	result = m_deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
-	if (result != S_OK)
-	{
-		std::cerr << "Failed to Query Auto-Detection-Flag" << std::endl;
-		exit(1);
-	}
+	HRESULT result;
+	IDeckLinkAttributes* deckLinkAttributes = nullptr;
+	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+
+	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
+	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+
+	LLOG(DEBUG1) << "querying BMDDeckLinkSupportsInputFormatDetection flag";
+	bool formatDetectionSupported;
+	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsInputFormatDetection, &formatDetectionSupported);
+	throwIfNotOk(result, "Could not query BMDDeckLinkSupportsInputFormatDetection flag");
 
 	return formatDetectionSupported;
 }
 
-bool DeviceProber::GetSignalDetected(void) {
+bool DeviceProber::GetSignalDetected() {
 	if (m_captureDelegate)
 	{
 		return m_captureDelegate->GetSignalDetected();
@@ -75,16 +107,7 @@ bool DeviceProber::GetSignalDetected(void) {
 	return false;
 }
 
-bool DeviceProber::IsSubDevice(void) {
-	if (m_captureDelegate)
-	{
-		return m_captureDelegate->IsSubDevice();
-	}
-
-	return false;
-}
-
-std::string DeviceProber::GetDetectedMode(void)
+std::string DeviceProber::GetDetectedMode()
 {
 	if (m_captureDelegate)
 	{
@@ -97,7 +120,7 @@ std::string DeviceProber::GetDetectedMode(void)
 	return "";
 }
 
-BMDPixelFormat DeviceProber::GetPixelFormat(void)
+BMDPixelFormat DeviceProber::GetPixelFormat()
 {
 	if (m_captureDelegate)
 	{
@@ -110,7 +133,7 @@ BMDPixelFormat DeviceProber::GetPixelFormat(void)
 	return 0;
 }
 
-IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame(void)
+IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame()
 {
 	if (m_captureDelegate)
 	{
@@ -120,7 +143,7 @@ IDeckLinkVideoInputFrame* DeviceProber::GetLastFrame(void)
 	return NULL;
 }
 
-BMDVideoConnection DeviceProber::GetActiveConnection(void)
+BMDVideoConnection DeviceProber::GetActiveConnection()
 {
 	if (m_captureDelegate)
 	{
@@ -137,42 +160,15 @@ void DeviceProber::SelectNextConnection(void) {
 	}
 }
 
-ULONG DeviceProber::AddRef(void)
-{
-	return __sync_add_and_fetch(&m_refCount, 1);
-}
-
-ULONG DeviceProber::Release(void)
-{
-	int32_t newRefValue = __sync_sub_and_fetch(&m_refCount, 1);
-	if (newRefValue == 0)
-	{
-		m_deckLink->Release();
-		m_deckLinkAttributes->Release();
-
-		if(m_captureDelegate != NULL) {
-			m_captureDelegate->Stop();
-
-			assert(m_captureDelegate->Release() == 0);
-		}
-
-		delete this;
-		return 0;
-	}
-	return newRefValue;
-}
-
 std::string DeviceProber::GetDeviceName() {
 	HRESULT result;
 
-	char* deviceNameString = NULL;
+	char* deviceNameString = nullptr;
 
 	result = m_deckLink->GetDisplayName((const char **) &deviceNameString);
-	if (result != S_OK)
-	{
-		fprintf(stderr, "Failed to get the Name for the DeckLink Device");
-		exit(1);
-	}
+	throwIfNotOk(result, "Failed to get the Name for the DeckLink Device");
 
-	return std::string(deviceNameString);
+	std::string str = std::string(deviceNameString);
+	free(deviceNameString);
+	return str;
 }

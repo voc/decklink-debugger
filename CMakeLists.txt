@@ -64,16 +64,19 @@ endif()
 
 # Build Binary
 add_executable(decklink-debugger
-	decklink-debugger.cpp
-	tostring.cpp
-	CaptureDelegate.cpp
-	DeviceProber.cpp
-	HttpServer.cpp
-	MutableVideoFrame.cpp
-	ImageEncoder.cpp
-	TablePrinter.cpp
-	DeckLinkAPIDispatch.cpp
-	${CMAKE_CURRENT_BINARY_DIR}/rc.cpp
+    decklink-debugger.cpp
+    tostring.cpp
+    log.cpp
+    util.cpp
+    SubDeviceUtil.cpp
+    CaptureDelegate.cpp
+    DeviceProber.cpp
+    HttpServer.cpp
+    MutableVideoFrame.cpp
+    ImageEncoder.cpp
+    TablePrinter.cpp
+    DeckLinkAPIDispatch.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/rc.cpp
 )
 # Make target depend on resources to make sure the resources target is built before the binary
 add_dependencies(decklink-debugger resources)
