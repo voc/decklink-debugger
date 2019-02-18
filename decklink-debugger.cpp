@@ -42,6 +42,8 @@ void _main() {
 
 	if(deviceProbers.size() == 0)
 	{
+		std::cerr << "Decklink-Driver is available but no DeckLink devices were found." << std::endl <<
+			"Check `BlackmagicFirmwareUpdater status`, `dmesg` and `lspci`." << std::endl << std::endl;
 		throw "No DeckLink devices found";
 	}
 
@@ -118,9 +120,11 @@ std::vector<DeviceProber*> createDeviceProbers()
 {
 	IDeckLinkIterator*    deckLinkIterator = CreateDeckLinkIteratorInstance();
 	RefReleaser<IDeckLinkIterator> deckLinkIteratorReleaser(&deckLinkIterator);
-	throwIfNull(deckLinkIterator,
-		"A DeckLink iterator could not be created. "
-		"The DeckLink drivers may not be installed.");
+	if(deckLinkIterator == nullptr) {
+		std::cerr << "The DeckLink Device-Iterator could not be created. " << std::endl <<
+			"Check if the DeckLink Kernel-Module is correctly installed: `lsmod | grep blackmagic`." << std::endl << std::endl;
+		throw "error creating IDeckLinkIterator";
+	}
 
 	std::vector<DeviceProber*> deviceProbers;
 
