@@ -30,7 +30,7 @@ cd decklink-debugger
 mkdir build
 cd build
 # specify path to Blackmagic SDK (optional parameter)
-cmake .. -DBLACKMAGIC_SDK_DIR=~/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/
+cmake .. -DDECKLINK_INCLUDE_DIR=~/VOC/Blackmagic-DeckLink-SDK-10.9.9/Linux/include/
 # compile application
 make -j$(nproc)
 ```
