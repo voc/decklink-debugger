@@ -83,12 +83,12 @@ bool DeviceProber::queryCanAutodetect()
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 
 	HRESULT result;
-	IDeckLinkAttributes* deckLinkAttributes = nullptr;
-	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+	IDeckLinkProfileAttributes* deckLinkAttributes = nullptr;
+	RefReleaser<IDeckLinkProfileAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
 
-	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
-	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
-	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+	LLOG(DEBUG1) << "querying IID_IDeckLinkProfileAttributes Interface";
+	result = m_deckLink->QueryInterface(IID_IDeckLinkProfileAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkProfileAttributes interface");
 
 	LLOG(DEBUG1) << "querying BMDDeckLinkSupportsInputFormatDetection flag";
 	bool formatDetectionSupported;

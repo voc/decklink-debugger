@@ -60,15 +60,15 @@ IDeckLinkConfiguration* CaptureDelegate::queryConfigurationInterface()
 	return deckLinkConfiguration;
 }
 
-IDeckLinkAttributes* CaptureDelegate::queryAttributesInterface()
+IDeckLinkProfileAttributes* CaptureDelegate::queryAttributesInterface()
 {
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 
 	HRESULT result;
-	IDeckLinkAttributes* deckLinkAttributes = nullptr;
+	IDeckLinkProfileAttributes* deckLinkAttributes = nullptr;
 
-	result = m_deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
-	throwIfNotOk(result, "Could not obtain the IID_IDeckLinkAttributes interface");
+	result = m_deckLink->QueryInterface(IID_IDeckLinkProfileAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IID_IDeckLinkProfileAttributes interface");
 
 	return deckLinkAttributes;
 }
@@ -115,7 +115,7 @@ void CaptureDelegate::setDuplexToHalfDuplexMode(IDeckLink *deckLink)
 	result = deckLink->QueryInterface(IID_IDeckLinkConfiguration, (void **)&m_deckLinkParentDeviceConfiguration);
 	throwIfNotOk(result, "Could not obtain the IID_IDeckLinkConfiguration interface");
 
-	result = m_deckLinkParentDeviceConfiguration->SetInt(bmdDeckLinkConfigDuplexMode, bmdDuplexModeHalf);
+	//result = m_deckLinkParentDeviceConfiguration->SetInt(bmdDeckLinkConfigDuplexMode, bmdDuplexModeHalf);
 	throwIfNotOk(result, "Setting duplex mode failed");
 }
 

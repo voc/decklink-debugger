@@ -23,16 +23,16 @@ bool SubDeviceUtil::SupportsDuplexMode(IDeckLink *deckLink)
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 
 	HRESULT result;
-	IDeckLinkAttributes* deckLinkAttributes = nullptr;
-	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+	IDeckLinkProfileAttributes* deckLinkAttributes = nullptr;
+	RefReleaser<IDeckLinkProfileAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
 
-	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
-	result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
-	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+	LLOG(DEBUG1) << "querying IID_IDeckLinkProfileAttributes Interface";
+	result = deckLink->QueryInterface(IID_IDeckLinkProfileAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkProfileAttributes interface");
 
 	LLOG(DEBUG1) << "querying BMDDeckLinkSupportsDuplexModeConfiguration flag";
 	bool supportsDuplexModeConfiguration;
-	result = deckLinkAttributes->GetFlag(BMDDeckLinkSupportsDuplexModeConfiguration, &supportsDuplexModeConfiguration);
+	//result = deckLinkAttributes->GetFlag(IDeckLinkProfileIterator, &supportsDuplexModeConfiguration);
 	if(result != S_OK) {
 		LLOG(DEBUG1) << "failed to query BMDDeckLinkSupportsDuplexModeConfiguration flag";
 		return false;
@@ -46,16 +46,16 @@ IDeckLink *SubDeviceUtil::QueryParentDevice(IDeckLink *deckLink)
 	LLOG(INFO) << __PRETTY_FUNCTION__;
 
 	HRESULT result;
-	IDeckLinkAttributes* deckLinkAttributes = nullptr;
-	RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+	IDeckLinkProfileAttributes* deckLinkAttributes = nullptr;
+	RefReleaser<IDeckLinkProfileAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
 
-	LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
-	result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
-	throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+	LLOG(DEBUG1) << "querying IID_IDeckLinkProfileAttributes Interface";
+	result = deckLink->QueryInterface(IID_IDeckLinkProfileAttributes, (void **)&deckLinkAttributes);
+	throwIfNotOk(result, "Could not obtain the IDeckLinkProfileAttributes interface");
 
 	LLOG(DEBUG1) << "querying BMDDeckLinkPairedDevicePersistentID attribute";
 	int64_t pairedDeviceId;
-	result = deckLinkAttributes->GetInt(BMDDeckLinkPairedDevicePersistentID, &pairedDeviceId);
+	//result = deckLinkAttributes->GetInt(BMDDeckLinkPairedDevicePersistentID, &pairedDeviceId);
 	if(result != S_OK)
 	{
 		LLOG(DEBUG1) << "failed to query BMDDeckLinkPairedDevicePersistentID attribute, this is no SubDevice";
@@ -95,12 +95,12 @@ IDeckLink *SubDeviceUtil::findDeckLinkInterfaceByPersistentId(int64_t pairedDevi
 		LLOG(DEBUG) << "probing Device " << i;
 		RefReleaser<IDeckLink> deckLinkReleaser(&deckLink);
 
-		IDeckLinkAttributes* deckLinkAttributes = nullptr;
-		RefReleaser<IDeckLinkAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
+		IDeckLinkProfileAttributes* deckLinkAttributes = nullptr;
+		RefReleaser<IDeckLinkProfileAttributes> deckLinkAttributesReleaser(&deckLinkAttributes);
 
-		LLOG(DEBUG1) << "querying IID_IDeckLinkAttributes Interface";
-		result = deckLink->QueryInterface(IID_IDeckLinkAttributes, (void **)&deckLinkAttributes);
-		throwIfNotOk(result, "Could not obtain the IDeckLinkAttributes interface");
+		LLOG(DEBUG1) << "querying IID_IDeckLinkProfileAttributes Interface";
+		result = deckLink->QueryInterface(IID_IDeckLinkProfileAttributes, (void **)&deckLinkAttributes);
+		throwIfNotOk(result, "Could not obtain the IDeckLinkProfileAttributes interface");
 
 		LLOG(DEBUG1) << "querying BMDDeckLinkPersistentID attribute";
 		int64_t persistent_id;
