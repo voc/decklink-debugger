@@ -28,3 +28,6 @@ table td img {
 	width: 160px;
 	height: 90px;
 }
+code {
+	white-space: pre;
+}

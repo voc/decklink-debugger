@@ -95,6 +95,9 @@ int HttpServer::requestHandler(
 	else if(method == "GET" && url.find("/capture/") == 0) {
 		return captureRequestHandler(url.substr(sizeof("/capture/") - 1), responseHeaders, responseBody);
 	}
+	else if(method == "GET" && url.find("/config/") == 0) {
+		return configRequestHandler(url.substr(sizeof("/config/") - 1), responseHeaders, responseBody);
+	}
 	else
 	{
 		return MHD_HTTP_NOT_FOUND;
@@ -145,6 +148,69 @@ int HttpServer::captureRequestHandler(
 	return MHD_HTTP_NOT_FOUND;
 }
 
+int HttpServer::configRequestHandler(
+	std::string filename,
+	std::map<std::string, std::string>* responseHeaders,
+	std::stringstream* responseBody
+) {
+	std::string index_str = filename;
+	unsigned long index;
+	try {
+		index = std::stoul(index_str);
+	}
+	catch(std::invalid_argument) {
+		return MHD_HTTP_NOT_FOUND;
+	}
+	catch(std::out_of_range) {
+		return MHD_HTTP_NOT_FOUND;
+	}
+
+	if(index < m_deviceProbers.size())
+	{
+		DeviceProber *deviceProber = m_deviceProbers[index];
+		(*responseHeaders)["Content-Type"] = "text/html; charset=UTF-8";
+
+	(*responseBody) <<
+"<!DOCTYPE html>"
+"<html>"
+"	<head>"
+"		<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\">"
+"	</head>"
+"	<body>"
+"		<h1>Configuration-Snippets</h1>"
+"		<h2>for the c3voc cm</h2>"
+"		<code>"
+"…\n"
+"  -\n"
+"    # " << deviceProber->GetDeviceName() << "\n"
+"    name: cam" << (index+1) << "\n"
+"    type: decklink-internal\n"
+"    devicenumber: " << index << "\n"
+"    video_connection: " << videoConnectionToString(deviceProber->GetActiveConnection()) << "\n"
+"    video_mode: \"" << deviceProber->GetDetectedMode() << "\"\n"
+"…"
+"		</code>"
+""
+"		<h2>for voctocore/config.ini</h2>"
+"		<code>"
+"…\n"
+"# " << deviceProber->GetDeviceName() << "\n"
+"[source.cam" << (index+1) << "]\n"
+"kind = decklink\n"
+"devicenumber = " << index << "\n"
+"video_connection = " << videoConnectionToString(deviceProber->GetActiveConnection()) << "\n"
+"video_mode = " << deviceProber->GetDetectedMode() << "\n"
+"audio_connection = embedded\n"
+"deinterlace = assume-progressive\n"
+"…"
+"		</code>"
+"	</body>"
+"</html>";
+		return MHD_HTTP_OK;
+	}
+	return MHD_HTTP_NOT_FOUND;
+}
+
 int HttpServer::indexRequestHandler(
 	std::map<std::string, std::string>* responseHeaders,
 	std::stringstream* responseBody
@@ -156,7 +222,7 @@ int HttpServer::indexRequestHandler(
 "<html>"
 "	<head>"
 "		<meta http-equiv=\"refresh\" content=\"1; URL=/\">"
-"		<link rel=\"stylesheet\" type=\"text/css\" href=\"static/style.css\">"
+"		<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\">"
 "	</head>"
 "	<body>"
 "		<h1>DecklinkDebugger on <u>" << m_hostname << "</u></h1>"
@@ -170,6 +236,7 @@ int HttpServer::indexRequestHandler(
 "				<th>Detected Mode</th>"
 "				<th>Pixel Format</th>"
 "				<th>Capture</th>"
+"				<th>Config</th>"
 "			</thead>"
 "			<tbody>";
 
@@ -200,6 +267,18 @@ int HttpServer::indexRequestHandler(
 			(*responseBody) <<
 "						<a href=\"/capture/" << deviceIndex << ".png\">"
 "							Capture Image"
+"						</a>";
+		}
+
+		(*responseBody) <<
+"					</td>"
+"					<td>";
+
+		if(deviceProber->GetSignalDetected())
+		{
+			(*responseBody) <<
+"						<a href=\"/config/" << deviceIndex << "\">"
+"							Config-Snippets"
 "						</a>";
 		}
 
