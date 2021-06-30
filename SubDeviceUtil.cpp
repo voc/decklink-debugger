@@ -55,7 +55,7 @@ IDeckLink *SubDeviceUtil::QueryParentDevice(IDeckLink *deckLink)
 
 	LLOG(DEBUG1) << "querying BMDDeckLinkPairedDevicePersistentID attribute";
 	int64_t pairedDeviceId;
-	//result = deckLinkAttributes->GetInt(BMDDeckLinkPairedDevicePersistentID, &pairedDeviceId);
+	result = deckLinkAttributes->GetInt(BMDDeckLinkPersistentID, &pairedDeviceId);
 	if(result != S_OK)
 	{
 		LLOG(DEBUG1) << "failed to query BMDDeckLinkPairedDevicePersistentID attribute, this is no SubDevice";
