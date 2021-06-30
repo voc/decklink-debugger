@@ -13,7 +13,7 @@
 
 #include "rc.h"
 
-enum MHD_Result requestHandlerProxy(
+int requestHandlerProxy(
 	void *cls,
 	struct MHD_Connection *connection,
 	const char *url,
@@ -228,7 +228,7 @@ int HttpServer::indexRequestHandler(
 	return MHD_HTTP_OK;
 }
 
-enum MHD_Result requestHandlerProxy(
+int requestHandlerProxy(
 	void *cls,
 	struct MHD_Connection *connection,
 	UNUSED const char *url,
@@ -267,7 +267,7 @@ enum MHD_Result requestHandlerProxy(
 		MHD_add_response_header(response, entry.first.c_str(), entry.second.c_str());
 	}
 
-	MHD_Result ret = MHD_queue_response(connection, status_code, response);
+	int ret = MHD_queue_response(connection, status_code, response);
 	MHD_destroy_response(response);
 	return ret;
 }
