@@ -267,7 +267,7 @@ enum MHD_Result requestHandlerProxy(
 		MHD_add_response_header(response, entry.first.c_str(), entry.second.c_str());
 	}
 
-	MHD_RESULT ret = MHD_queue_response(connection, status_code, response);
+	MHD_Result ret = MHD_queue_response(connection, status_code, response);
 	MHD_destroy_response(response);
 	return ret;
 }
