@@ -253,10 +253,17 @@ HRESULT CaptureDelegate::VideoInputFormatChanged(UNUSED BMDVideoInputFormatChang
 
 	bool isRgb = formatFlags & bmdDetectedVideoInputRGB444;
 
-	mode->GetName((const char**)&displayModeName);
-	m_detectedMode = displayModeName;
-	m_detectedMode += " ";
-	m_detectedMode += (isRgb ? "RGB" : "YUV");
+	result = mode->GetName((const char**)&displayModeName);
+	if (result == S_OK)
+	{
+		m_detectedMode = displayModeName;
+		m_detectedMode += " ";
+		m_detectedMode += (isRgb ? "RGB" : "YUV");
+	}
+	else
+	{
+		m_detectedMode =  "Unknown mode";
+	}
 
 	if (displayModeName)
 		free(displayModeName);
