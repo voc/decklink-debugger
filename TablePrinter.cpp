@@ -103,7 +103,7 @@ TablePrinter& TablePrinter::operator<<(double input){
 }
 
 TablePrinter& TablePrinter::operator<<(UNUSED greyon input) {
-  *out_stream_ << "\033[1;30m";
+  *out_stream_ << "\033[0;37m";
   return *this;
 }
 
