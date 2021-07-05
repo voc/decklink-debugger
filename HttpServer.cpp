@@ -13,7 +13,13 @@
 
 #include "rc.h"
 
-int requestHandlerProxy(
+
+#if MHD_VERSION < 0x00097002
+static int
+#else
+static enum MHD_Result
+#endif
+requestHandlerProxy(
 	void *cls,
 	struct MHD_Connection *connection,
 	const char *url,
@@ -228,7 +234,12 @@ int HttpServer::indexRequestHandler(
 	return MHD_HTTP_OK;
 }
 
-int requestHandlerProxy(
+#if MHD_VERSION < 0x00097002
+static int
+#else
+static enum MHD_Result
+#endif
+requestHandlerProxy(
 	void *cls,
 	struct MHD_Connection *connection,
 	UNUSED const char *url,
@@ -267,7 +278,12 @@ int requestHandlerProxy(
 		MHD_add_response_header(response, entry.first.c_str(), entry.second.c_str());
 	}
 
-	int ret = MHD_queue_response(connection, status_code, response);
+	#if MHD_VERSION < 0x00097002
+	int
+	#else
+	MHD_Result
+	#endif
+	ret = MHD_queue_response(connection, status_code, response);
 	MHD_destroy_response(response);
 	return ret;
 }

@@ -34,7 +34,7 @@ private:
 
 	IDeckLinkDisplayMode*   queryFirstDisplayMode();
 	IDeckLinkConfiguration* queryConfigurationInterface();
-	IDeckLinkAttributes*    queryAttributesInterface();
+	IDeckLinkProfileAttributes*    queryAttributesInterface();
 
 	int64_t                 queryInputConnections();
 	BMDVideoConnection      querySelectedConnection();
@@ -60,8 +60,8 @@ private:
 	IDeckLink*                m_deckLink;
 	IDeckLinkInput*           m_deckLinkInput;
 
-	IDeckLinkAttributes*             m_deckLinkAttributes;
-	RefReleaser<IDeckLinkAttributes> m_deckLinkAttributesReleaser;
+	IDeckLinkProfileAttributes*             m_deckLinkAttributes;
+	RefReleaser<IDeckLinkProfileAttributes> m_deckLinkAttributesReleaser;
 
 	IDeckLinkConfiguration*             m_deckLinkConfiguration;
 	RefReleaser<IDeckLinkConfiguration> m_deckLinkConfigurationReleaser;
