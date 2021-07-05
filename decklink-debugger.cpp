@@ -172,13 +172,13 @@ void printStatusList(std::vector<DeviceProber*> deviceProbers, unsigned int iter
 	}
 
 	bprinter::TablePrinter table(&std::cout);
-	table.AddColumn("#", 15);
-	table.AddColumn("Device Name", 31);
+	table.AddColumn("#", 4);
+	table.AddColumn("Device Name", 33);
 	table.AddColumn("Can Input & Detect", 20);
-	table.AddColumn("Signal Detected", 17);
-	table.AddColumn("Active Connection", 19);
-	table.AddColumn("Detected Mode", 16);
-	table.AddColumn("Pixel Format", 15);
+	table.AddColumn("Signal", 8);
+	table.AddColumn("Connection", 12);
+	table.AddColumn("Detected Mode", 20);
+	table.AddColumn("Pixel Format", 92);
 	table.set_flush_left();
 	table.PrintHeader();
 
